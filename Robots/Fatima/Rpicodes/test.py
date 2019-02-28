@@ -3,13 +3,13 @@ import csv
 import serial
 import socket
 import sys
-
+from thread import start_new_thread
 
 ardS = serial.Serial("/dev/ttyUSB0", baudrate = 115200)
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
 HOST= '192.168.25.113'
-PORT= 65436
+PORT= 65437
 #######################################################
 print("Creando Socket")
 try:
@@ -27,8 +27,24 @@ s.listen(3) #Maximo tres clientes
 conn, addr = s.accept()
 print('Connected by', addr)
 
-def txData (rad[1],rad[2],imu[0],imu[1],imu[2]):
-    data = str(rad[1])+','+str(rad[2)+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
+#Creacion de thread
+def client_thread(conn):
+    for i in range(0,100):
+        data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
+        try:
+            conn.sendall(data)
+        except socket.error:
+            print ('No se pudo enviar la informacion')
+            print ("Modulos Desactivados")
+            ardS.write(b'E') 
+            ardS.write(b's')
+            conn.close()
+            time.sleep(2)
+            sys.exit()
+    
+###################
+def txData ():
+    data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
     try:
         conn.sendall(data)
         
@@ -69,13 +85,13 @@ try:
                 rad[0] = dsplit[1]
                 rad[1]=float(dsplit[2])
                 rad[2]=dsplit[3]
-                rad[2] = d.rstrip('\n')
-                rad[2] = float(d)
+                rad[2] = rad[2].rstrip('\n')
+                rad[2] = float(rad[2])
                 continue
         else:
             print ("no data")
         
-        
+        #txData()
 except KeyboardInterrupt:
     print ("Modulos Desactivados")
     ardS.write(b'E') 
