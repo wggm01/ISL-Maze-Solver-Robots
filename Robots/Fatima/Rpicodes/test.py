@@ -3,17 +3,20 @@ import csv
 import serial
 import socket
 import sys
-from _thread import*
+
+from thread import*
 
 ardS = serial.Serial("/dev/ttyUSB0", baudrate = 115200)
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
 HOST= '192.168.25.113'
-PORT= 65437
+PORT= 65441
+
 #######################################################
 print("Creando Socket")
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
 except socket.error:
     print('Error Socket')
     print ("Modulos Desactivados")
@@ -23,17 +26,22 @@ except socket.error:
     sys.exit()
     
 s.bind((HOST, PORT))
+
 s.listen(3) #Maximo tres clientes
+
 conn, addr = s.accept()
+
 print('Connected by', addr)
 
-#Creacion de thread
+
+#Creacion de thread---Sin Uso
 def client_thread(conn,rad,imu):
     
     try:
         data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
+        print (data)
         conn.sendall(data)
-        print("Termine_Thread")
+        #print("Termine_Thread")
     except socket.error:
         print ('No se pudo enviar la informacion')
         print ("Modulos Desactivados")
@@ -49,21 +57,24 @@ def txData ():
     try:
         conn.sendall(data)
         
+        
     except socket.error:
         print ('No se pudo enviar la informacion')
         print ("Modulos Desactivados")
         ardS.write(b'E') 
         ardS.write(b's')
         conn.close()
+        
         time.sleep(2)
         sys.exit()
     
 ##########SIN USO POR EL MOMENTO###########    
 
 ##########ADQUISICION DE CLIENTES##########
-for i in range(3):
-    conn, addr = s.accept()
-    print('Connected by', addr)
+#for i in range(2):
+#    conn, addr = s.accept()
+#    print('Connected by', addr)
+#print("clientes adquiridos")
 ##########ADQUISICION DE CLIENTES##########
 
 for i in range(0,1):
@@ -97,8 +108,8 @@ try:
                 continue
         else:
             print ("no data")
-        
-        start_new_thread(client_thread, (conn,rad,imu,))
+        txData()
+        #start_new_thread(client_thread, (conn,rad,imu,))
 except KeyboardInterrupt:
     print ("Modulos Desactivados")
     ardS.write(b'E') 
