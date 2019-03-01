@@ -5,6 +5,7 @@ import sys
 import serial
 import time
 import os
+import socket
 GPIO.setmode (GPIO.BCM) #nomenclatura GPIO# no numero de pin
 ledS=19 #led  de estado de espera/eleccion de modo
 b1=25 #boton para confirmacion de conexion con arduino/MODO MANUAL(activacion en lectura de 1)
@@ -49,7 +50,7 @@ ena_Sensor=0
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
 HOST= '192.168.25.113'
-PORT= 65441 # Revisar contra el cliente
+PORT= 6790 # Revisar contra el cliente
 ###tcp###
 
 ######Movimiento de los motores######
@@ -121,41 +122,7 @@ def spinder(mode):
 
 ######Movimiento de los motores######
 
-###control manual###
-def mov():
-    data = conn.recv(1024)
-    if not data:
-        print("Modulos Desactivados")
-        conn.close()
-        time.sleep(2)
-        GPIO.cleanup()
-		#os.excel("restart.sh","")
-        sys.exit()
 
-    # ANALISIS DE DATA
-    cmdRaw = data.partition('s') # Separa la trama al encontrar el caracter s (cmd,s,'')
-    cmd= cmdRaw[0] # (cmd)
-    #comando = realizar un movimiento
-    if (cmd == 'w'):
-        adelante(0)
-    if (cmd == 'a'):
-        izquierda(0)
-    if (cmd == 'd'):
-        derecha(0)
-    if (cmd == 'q'):
-        spinizq(0)
-    if (cmd == 'e'):
-        spinder(0)
-    if (cmd == 'x'):
-        print("Modulos Desactivados")
-        conn.close()
-        time.sleep(2)
-        GPIO.cleanup()
-		#os.excel("restart.sh","")
-        sys.exit()
-    else:
-        detenerse() #se enviara una z indicando que el boton ha sido soltado.
-###control manual###
 
 print("###incio del programa###")
 GPIO.output(nmos,GPIO.LOW) #apaga rele
@@ -170,26 +137,16 @@ try:
     
     time.sleep(0.5)#dejar que actue la raspberry
     while (flag == 0):
-        print ("wating")
-        b1S=GPIO.input(b1)
-        time.sleep(0.5)
-        if (b1S==1): #se sale si presionas b1
+        print ("wating Arduino")
+        #b1S=GPIO.input(b1)
+        #time.sleep(0.5)
+        ardR=ardS.readline()
+        ardR1 = ardR.rstrip('\r\n')
+        #print(type(ardR1))
+        if (ardR1 == '1'): #se sale si presionas b1
             flag=1
             break
-                
-    if (flag == 1): 
-        time.sleep(3) 
-        ardS.write(b"1") #Estas despierto?
-        ardS.write(b"s") #Estas despierto?
-        time.sleep(0.5)
-        ardR=ardS.readline()
-        while(ardR != '1'): #persiste hasta obtener el feedback del arduino
-            print("wating")
-            ardR=ardS.readline() #se sale al recibir el 1 del arduino
-            ardR=int(ardR)
-            if (ardR== 1):
-                print("desperto")
-                break
+                            
     GPIO.output(ledS,GPIO.LOW)
     #GPIO.output(nmos,GPIO.LOW)
     print("Fin de prueba part1")
@@ -215,7 +172,7 @@ try:
             time.sleep(0.5)
             if (b2S==1):
                 b2F=2 #bandera para modo manual
-                print(b2F)
+                #print(b2F)
                 break #SALE DEL WHILE SI ALGUNO DE LOS DOS ES PRESIONADO
 ####################MODO MAZE###################################
     while b1F == 1: #Modo maze activo
@@ -232,7 +189,7 @@ try:
             time.sleep(0.5)
             if (b1S == 1):  # debug
                 flag = 0
-                debug 1
+                debug=1
             ######TCP INICIALIZACION#####
                 print("Creando Socket")
                 try:
@@ -248,6 +205,7 @@ try:
 					
                 s.bind((HOST, PORT))
                 s.listen(3)  # Maximo tres clientes
+                print("Creando Socket")
                 conn, addr = s.accept() #se queda esperando un cliente
                 print('Connected by', addr)
             ######TCP INICIALIZACION#####
@@ -263,7 +221,7 @@ try:
                 GPIO.output(ledS, GPIO.HIGH)
                 time.sleep(1)
                 GPIO.output(ledS, GPIO.LOW)
-			GPIO.output(ledS, GPIO.LOW)
+               
 
         ######ARDUINO ACTIVACION DE SISTEMA#####
         if ena_Sensor==0:
@@ -316,7 +274,7 @@ try:
 		
         ########LOGICA DE MAZE########
         cmd_raw = mazelogic.logic(rad[0], rad[1], rad[2])
-		cmd,rstSensor= cmd_raw.split(",")
+        cmd,rstSensor= cmd_raw.split(",")
 
         if (cmd == 'w'):
             adelante(1)
@@ -364,22 +322,60 @@ try:
 			
  #########################MODO MANUAL###############################################
     while b2F == 2: #Modo manual activo
-        if ena2S = 1:
+        print("MODO MANUAL")
+        if ena2S == 1:
             ena2S=0
             for i in range(5): #parpadeo 5 veces modo manual
                 GPIO.output(ledS, GPIO.HIGH)
                 time.sleep(1)  # parpadeo indica modo manual
                 GPIO.output(ledS, GPIO.LOW)
 
-        ####conexion TCP ######
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind((HOST, PORT))
-        s.listen(5)
-        conn, addr = s.accept()
-        print('Connected by', addr) #se queda esperando un cliente
-        ####conexion TCP ######
-        mov() #ejecucion de movimiento
+            ####conexion TCP ######
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind((HOST, PORT))
+            s.listen(5)
+            print("Creando Socket")
+            conn, addr = s.accept()
+            print('Connected by', addr) #se queda esperando un cliente
+            ####conexion TCP ######
+            
+        ###control manual###
+        data = conn.recv(1024)
+        if not data:
+            print("Modulos Desactivados")
+            conn.close()
+            time.sleep(2)
+            GPIO.cleanup()
+            #os.excel("restart.sh","")
+            sys.exit()
 
+        # ANALISIS DE DATA
+        cmdRaw = data.partition('s') # Separa la trama al encontrar el caracter s (cmd,s,'')
+        cmd= cmdRaw[0] # (cmd)
+        #comando = realizar un movimiento
+        if (cmd == 'w'):
+            adelante(0)
+        if (cmd == 'a'):
+            izquierda(0)
+        if (cmd == 'd'):
+            derecha(0)
+        if (cmd == 'q'):
+            spinizq(0)
+        if (cmd == 'e'):
+            spinder(0)
+        if (cmd == 'x'):
+            print("Modulos Desactivados")
+            conn.close()
+            time.sleep(2)
+            GPIO.cleanup()
+            #os.excel("restart.sh","")
+            sys.exit()
+            
+        if (cmd == 'z'):
+            detenerse() #se enviara una z indicando que el boton ha sido soltado.
+        ###control manual###
+        
+        print("Modo manual Activo")
 
         b1S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente
