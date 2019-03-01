@@ -44,6 +44,7 @@ enaS=1 # Flag para correr codigo una sola vez
 ena2S=1 #Flag para correr codigo una sola vez
 debug =0 #control de modo debug
 ena_Sensor=0
+rst_Sensor=0
 ###CONTROL DE INCIIALIZACION###
 
 ###tcp###
@@ -71,7 +72,7 @@ def adelante(mode):
     GPIO.output(motorB1, GPIO.HIGH)
     GPIO.output(motorB2, GPIO.HIGH)
     if mode == 1:
-        time.sleep(1.5) # ajustar hasta implementar encoder
+        time.sleep(1) # ajustar hasta implementar encoder
         detenerse()
 
 
@@ -82,7 +83,7 @@ def izquierda(mode):
     GPIO.output(motorB1, GPIO.HIGH)
     GPIO.output(motorB2, GPIO.LOW)
     if mode == 1:
-        time.sleep(1.5) # ajustar hasta implementar encoder
+        time.sleep(1) # ajustar hasta implementar encoder
         detenerse()
 
 
@@ -94,7 +95,7 @@ def spinizq(mode):
     GPIO.output(motorB1, GPIO.HIGH)
     GPIO.output(motorB2, GPIO.LOW)
     if mode == 1:
-        time.sleep(1.5) # ajustar hasta implementar encoder
+        time.sleep(1) # ajustar hasta implementar encoder
         detenerse()
 
 
@@ -105,7 +106,7 @@ def derecha(mode):
     GPIO.output(motorB1, GPIO.LOW)
     GPIO.output(motorB2, GPIO.HIGH)
     if mode == 1:
-        time.sleep(1.5) # ajustar hasta implementar encoder
+        time.sleep(1) # ajustar hasta implementar encoder
         detenerse()
 
 
@@ -117,7 +118,7 @@ def spinder(mode):
     GPIO.output(motorB1, GPIO.LOW)
     GPIO.output(motorB2, GPIO.HIGH)
     if mode == 1:
-        time.sleep(1.5) # ajustar hasta implementar encoder
+        time.sleep(1) # ajustar hasta implementar encoder
         detenerse()
 
 ######Movimiento de los motores######
@@ -219,6 +220,16 @@ try:
         #        GPIO.output(ledS, GPIO.LOW)
                
         ######ARDUINO ACTIVACION DE SISTEMA#####
+        
+#        if(rst_Sensor==1):
+#            print("reiniciando")
+#            ardS.write(b'E')  # Activacion de los sensores
+#            time.sleep(1)
+#            ardS.write(b's')  # fin de mensaje
+#            time.sleep(0.5)
+#            rst_Sensor=0
+#            time.sleep(1)
+        
         if ena_Sensor==0:
             ena_Sensor=1
             for i in range(0, 1):
@@ -228,12 +239,7 @@ try:
                 time.sleep(0.5)
                 print("Intentando conectar")
             print("UART establecido")
-#        else:
-#            continue
-            #ardS.write(b'E')  # Activacion de los sensores
-            #time.sleep(1)
-            #ardS.write(b's')  # fin de mensaje
-            #time.sleep(0.5)
+        
         ######ARDUINO ACTIVACION DE SISTEMA#####
 
         ###ANALISIS DE DATA PROVENIENETE DEL ARDUINO###
@@ -252,12 +258,14 @@ try:
                 # imu[4]=float(imu[2])
                 continue
             if (dsplit[0] == 'R'):
-                rad[0] = dsplit[1]
-                rad[1] = float(dsplit[2])
-                rad[2] = dsplit[3]
-                rad[2] = rad[2].rstrip('\n')
-                rad[2] = float(rad[2])
-                continue
+                if (dsplit[1] !="CW"):
+                    rad[0] = dsplit[1]
+                    rad[1] = float(dsplit[2])
+                    rad[2] = dsplit[3]
+                    rad[2] = rad[2].rstrip('\n')
+                    rad[2] = float(rad[2])
+                    #print(rad[0], rad[1], rad[2])
+                    continue
         else:
             print("no data")
             print('No se pudo enviar la informacion')
@@ -271,12 +279,13 @@ try:
             sys.exit()  
 
 		###ANALISIS DE DATA PROVENIENETE DEL ARDUINO###	
-		
+        #print(rad[0], rad[1], rad[2])
         ########LOGICA DE MAZE########
         cmd_raw = mazelogic.logic(rad[0], rad[1], rad[2])
+        
         print(cmd_raw)
         if cmd_raw != None:
-            cmd,rstSensor1= cmd_raw
+            cmd,ena_Sensor1= cmd_raw
             #print(cmd,rstSensor)
         
             if (cmd == 'w'):
@@ -289,10 +298,15 @@ try:
                 spinizq(1)
             if (cmd == 'e'):
                 spinder(1)
+                
+            if (ena_Sensor == 0): # ==0 significa que ya tomo una desicion
+                rst_Sensor = 1 #por ende el radar debe reiniciar
             else:
                 detenerse()
-            #ena_Sensor=0 
-
+        else:
+            ena_Sensor=1 #Mantener el sensor andando hasta recibir data
+            rst_Sensor = 0
+            print("Persistiendo")            
         ########LOGICA DE MAZE########
 		
 		########ENVIO DE DATOS########

@@ -25,6 +25,7 @@ rmov=[0,0] #redundancia
 def logic(dire,theta,r):
     #print (dire,theta,r)
     #dire=str(dire)
+    
     if dire == "CCW":
         
         if (theta < 46): #check
@@ -93,41 +94,49 @@ def logic(dire,theta,r):
                     movlog[3] = 0
                     regC[3] = 0
 
-        if theta > 179:
+        if theta == 180:
             # decision de movimiento:
             rmov[0] = str(movlog[0]) + str(movlog[1]) + str(movlog[2]) + str(movlog[3])
             #print(rmov[0])
             idle[0] = 1  # identificador de que se completo el analisis en ccw
+    
             
+            if idle[0] == 1:
+                if rmov[0] == "1001":
+                # avanzar recto
+                    idle[0] = 0
+                    #idle[1] = 0
+               
+                    return ('w',0)
+
+                if rmov[0] == "0001":
+                    # avanzar izquierda 90 grados
+                    idle[0] = 0
+                    #idle[1] = 0
+               
+                    return ('a',0)
+
+                if rmov[0] == "1000":
+                    # avanzar derecha 90 grados
+                    idle[0] = 0
+                    #idle[1] = 0
             
-        if idle[0] == 1:
-            if rmov[0] == "1001":
-            # avanzar recto
-                idle[0] = 0
-                #idle[1] = 0
-                return ('w',0)
+                    return ('d',0)
 
-            if rmov[0] == "0001":
-            # avanzar izquierda 90 grados
-                idle[0] = 0
-                #idle[1] = 0
-                return ('a',0)
+                if rmov[0] == "1111":
+                    # rotar 180
+                    idle[0] = 0
+                    #idle[1] = 0
+                
+                    return ('q',0)
 
-            if rmov[0] == "1000":
-                # avanzar derecha 90 grados
-                idle[0] = 0
-                idle[1] = 0
-                return ('d',0)
-
-            if rmov[0] == "1111":
-                # rotar 180
-                idle[0] = 0
-                idle[1] = 0
-                return ('q',0)
-
-        else:
-            return ('x', 1)
-            print("mapeando")
+                else:
+                    return ('x', 1)
+                    print("mapeando")
+    
+    
+    return ('x', 1)
+   
 
 """
 ############################################################                        

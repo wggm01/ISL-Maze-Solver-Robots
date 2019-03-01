@@ -71,7 +71,7 @@ try:
                 #print(dsplit)
                 imu[0]=float(dsplit[1])
                 imu[1]=float(dsplit[2])
-                imu[2]=float(dsplit[3])
+                imu[2]=float(dsplit[3]) 
                 #imu[3]=imu[2].rstrip('\r\n')
                 #imu[4]=float(imu[2])      
                 continue
