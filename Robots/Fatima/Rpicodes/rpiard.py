@@ -7,6 +7,9 @@ import time
 import os
 import socket
 import bluetooth
+import select
+from thread import *
+import threading 
 GPIO.setmode (GPIO.BCM) #nomenclatura GPIO# no numero de pin
 ledS=19 #led  de estado de espera/eleccion de modo
 b1=25 #boton para confirmacion de conexion con arduino/MODO MANUAL(activacion en lectura de 1)
@@ -18,6 +21,9 @@ GPIO.setup(nmos,GPIO.OUT)
 GPIO.setup(b1,GPIO.IN,pull_up_down=GPIO.PUD_DOWN) #la raspberry actuara cuando reciba 3.3v
 GPIO.setup(b2,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 ####INCIALIZACION DE PINES PARA L298N####
+#Control Thread#
+print_lock = threading.Lock()
+#Control Thread#
 motorA1=4 # in1
 motorA2=23# in3
 motorB1=17# in2
@@ -47,16 +53,12 @@ debug =0 #control de modo debug
 ena_Sensor=0
 rst_Sensor=[0]
 ###CONTROL DE INCIIALIZACION###
-#Control de Thread#
-stop_threads = False
-#Control de Thread#
 ###tcp###
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
-HOST= '192.168.25.104'
-PORT= 6793 # Revisar contra el cliente
+HOST= '192.168.25.100'
+PORT= 6794 # Revisar contra el cliente
 ###tcp###
-
 ######Movimiento de los motores######
 def detenerse():
     ena.ChangeDutyCycle(0)
@@ -124,47 +126,42 @@ def spinder(mode):
         time.sleep(1) # ajustar hasta implementar encoder
         detenerse()
 ######Movimiento de los motores######
-####thread funcion Bluetooth ######
-def client_thread(client_sock,address, max_buffer_size = 41):
-    print('thread running') 
-    global stop_threads
-    if stop_threads: 
+######Funcion Thread######
+def threaded(c):
+    while True:
+        #print("Thread ejectuado")
+        data=c.recv(1024)
+        data_decode=data.decode("utf-8")
+        data_str=str(data_decode)
+        if not data:
+            print("Bye Bye")
+            print_lock.release()
             break
-    ###control manual###
-        data = client_sock.recv(1024)
-        print(data)
-#        cmdRaw = data.partition('s') # Separa la trama al encontrar el caracter s (cmd,s,'')
-#        cmd= cmdRaw[0] # (cmd)
-        #comando = realizar un movimiento
-#        if (cmd == 'w'):
-#            adelante(0)
-#        if (cmd == 'a'):
-#            izquierda(0)
-#        if (cmd == 'd'):
-#            derecha(0)
-#        if (cmd == 'q'):
-#            spinizq(0)
-#        if (cmd == 'e'):
-#            spinder(0)
-#        if (cmd == 'x'):
-#            print("Modulos Desactivados")
-#            conn.close()
-#            time.sleep(2)
-#            GPIO.cleanup()
-            #os.excel("restart.sh","")
-#            sys.exit()
-    
-####thread funcion Bluetooth ######
+        if data_str == 'w':
+            adelante(0)
+        elif data_str == 'a':
+            izquierda(0)
+        elif data_str == 's':
+            derecha(0)
+        elif data_str == 'd':
+            detenerse()
+        else:
+            detenerse()
+        #print (data)
+    c.close()
+######Funcion Thread######
+
+
 #######Envio de data usando TCP########
 def txData ():
     #data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
     data_to = str(rad[1])+','+str(rad[2])+'s'
     data_toSend=data_to.encode('utf-8')
     packet_len=len(data_toSend)
-    diff=8-packet_len
+    diff=12-packet_len
     packet_adj=data_to + 's'*diff
     packet_toSend=packet_adj.encode('utf-8')
-    #print(data)
+    #print(len(packet_toSend))
     try:
         conn.sendall(packet_toSend)
     except socket.error:
@@ -173,7 +170,6 @@ def txData ():
         ardS.write(b'E')
         ardS.write(b's')
         conn.close()
-
         time.sleep(2)
         sys.exit()
 ########Envio de dara usanto TCP######
@@ -181,7 +177,6 @@ def txData ():
 ####adquisicion datat#####
 def rpiard(logic):
     data_raw = ardS.readline()
-    print(data_raw)
     if data_raw:
         datastr = data_raw.decode("utf-8")
         dsplit = datastr.split(",")
@@ -208,7 +203,6 @@ def rpiard(logic):
                         txData()
                     print(rad[0], rad[1], rad[2])
                 if(logic==0):
-                    print("rpiard 0")
                     txData()
                     with open ("reg0-180.csv", "a") as pos:
                         pos.write("%s, %s \n" % ( rad[1],rad[2]))
@@ -242,8 +236,6 @@ try:
     #GPIO.output(nmos,GPIO.LOW)
     print("Fin de prueba part1")
 
-
-
     time.sleep(0.5) #esperar por cualquier eventualidad
     b1S=GPIO.input(b1) #ALMACENO EL ESTADO inicial
     b2S=GPIO.input(b2) #ALMACENO EL ESTADO inicial
@@ -265,6 +257,7 @@ try:
                 b2F=2 #bandera para modo manual
                 #print(b2F)
                 break #SALE DEL WHILE SI ALGUNO DE LOS DOS ES PRESIONADO
+                
 ####################MODO MAZE###################################
     while b1F == 1: #Modo maze activo
 
@@ -352,22 +345,23 @@ try:
             server_sock.listen(1)
             try:
                 print("Esperando Conexion")
-                client_sock,address = server_sock.accept()
-                print "Conexion Bluetooth establecida ",address
- 
+                c,address = server_sock.accept()
+                print ("Conexion Bluetooth establecida ",address)
+                print_lock.acquire()
+                #client_sock.setblocking(0)
+                start_new_thread(threaded, (c,))
+                print("Thread iniciado")
             except Exception as e:
                 print("No se ha podido establecer la conexion")
                 server_sock.close()
             ####conexion Bluetooth ######
-            ####thread Bluetooth ######
-            try:
-                t1=threading.Thread(target=client_thread, args=(client_sock,address))
-                t1.start()
-            except:
-                print("Thread did not start.")
-                traceback.print_exc()
-                
-            ####thread Bluetooth ######
+            ####sirve pero no me gusta la idea ######
+            #stat=select.select([client_sock],[],[],0.001)
+            #if stat[0]:
+            #    data = client_sock.recv(1024)
+            #    print(data)
+            
+            ####sirve pero no me gusta la idea  ######
             ####conexion TCP ######
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.bind((HOST, PORT))
@@ -389,10 +383,7 @@ try:
         b1S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente
             print ("Modulos Desactivados")
-            stop_threads = True
-            t1.join() 
-            print('thread muerto')
-            conn.sendall('0') #indica que el procesdo de graficado debe acabar
+            conn.sendall('1') #indica que el procesdo de graficado debe acabar
             time.sleep(1)
             conn.close()
             ardS.write(b"E") #Desactiva los sensores
