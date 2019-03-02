@@ -1,5 +1,5 @@
-
 import time
+import csv
 #######CCW##########
 regC=[0,0,0,0] #Incrementador para ir guardando distancias
 pnt0=[0]*100 #5-45
@@ -31,11 +31,14 @@ def logic(dire,theta,r):
         if (theta < 46): #check
             # cantidad de puntos [para realizar el promedio]
             pnt0[regC[0]] = r
+            #print("puntos 0-45",r)
+            with open ("reg0-45.csv", "a") as pos:
+                pos.write("%s, %s \n" % ( theta,r))
             regC[0] += 1  # Realiza el incremento para ir guardando las r en pnt
             # promedio de distancia[max dist 38cm]
             if theta == 45:
                 average[0] = sum(pnt0) / len(pnt0)
-                #print("0-45 ",average[0])
+                print("0-45 ",average[0])
                 if (average[0]) < 40:
                     movlog[0] = 1  # instruccion logica para movimiento de robot
                     regC[0] = 0  # reincia contador para nuevo analisis
@@ -48,11 +51,14 @@ def logic(dire,theta,r):
         elif (theta > 45 and theta < 91):  # check
             # cantidad de puntos [para realizar el promedio]
             pnt1[regC[1]] = r
+            #print("puntos 45-90",r)
+            with open ("reg45-90.csv", "a") as pos:
+                pos.write("%s, %s \n" % ( theta,r))
             regC[1] += 1
             # promedio de distancia[max dist 38cm]
             if theta == 90:
                 average[1] = sum(pnt1) / len(pnt1)
-                #print("45-90 ",average[1])
+                print("45-90 ",average[1])
                 if (average[1]) < 40:
                     movlog[1] = 1  # instruccion logica para movimiento de robot
                     regC[1] = 0  # reincia contador para nuevo analisis
@@ -65,11 +71,14 @@ def logic(dire,theta,r):
         elif (theta > 90 and theta < 136):  # check
             # cantidad de puntos [para realizar el promedio]
             pnt2[regC[2]] = r
+            with open ("reg90-135.csv", "a") as pos:
+                pos.write("%s, %s \n" % ( theta,r))
+            #print("puntos 90-135",r)
             regC[2] += 1
             # promedio de distancia[max dist 38cm]
             if theta == 135:
                 average[2] = sum(pnt2) / len(pnt2)
-                #print("90-136 ",average[2])
+                print("90-135 ",average[2])
                 if (average[2]) < 40:
                     movlog[2] = 1
                     regC[2] = 0
@@ -81,11 +90,14 @@ def logic(dire,theta,r):
         elif (theta > 135 and theta < 181):  # check
             # cantidad de puntos [para realizar el promedio]
             pnt3[regC[3]] = r
+            with open ("reg135-180.csv", "a") as pos:
+                pos.write("%s, %s \n" % ( theta,r))
+            #print("puntos 135-180",r)
             regC[3] += 1
             # promedio de distancia[max dist 38cm]
             if theta == 180:
                 average[3] = sum(pnt3) / len(pnt3)
-                #print("136-180 ",average[3])
+                print("135-180 ",average[3])
                 if (average[3]) < 40:
                     movlog[3] = 1
                     regC[3] = 0

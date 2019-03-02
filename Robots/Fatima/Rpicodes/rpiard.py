@@ -122,7 +122,21 @@ def spinder(mode):
         detenerse()
 
 ######Movimiento de los motores######
-
+def txData ():
+    data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
+    try:
+        conn.sendall(data)
+        
+        
+    except socket.error:
+        print ('No se pudo enviar la informacion')
+        print ("Modulos Desactivados")
+        ardS.write(b'E') 
+        ardS.write(b's')
+        conn.close()
+        
+        time.sleep(2)
+        sys.exit()
 
 
 print("###incio del programa###")
@@ -256,22 +270,22 @@ try:
                     cmd_raw = mazelogic.logic(rad[0], rad[1], rad[2])
                     cmd,ena_Sensor1= cmd_raw
                     #######Movimiento de los motores########
-			if (dsplit[0]=="cmd"):
-				cmd=dsplit[1]
-                print(cmd)
-                if (cmd == 'w'):                         
-					adelante(1)
-                if (cmd == 'a'):  
-                    izquierda(1)        
-                if (cmd == 'd'):        
-                    derecha(1)        
-                if (cmd == 'q'):        
-                     spinizq(1)       
-                if (cmd == 'e'):        
-                    spinder(1)              
-                else:
-                    detenerse()      
-                continue
+                    #print(cmd)
+                    if (cmd == 'w'):                         
+                        print ("adelante(1)")
+                    if (cmd == 'a'):  
+                        print("izquierda(1)")        
+                    if (cmd == 'd'):        
+                        print("derecha(1)")        
+                    if (cmd == 'q'):        
+                        print("spinizq(1)")       
+                    if (cmd == 'e'):        
+                        print("spinder(1)")              
+                    else:
+                        detenerse()
+            if (debug):
+                print("Enviado")
+                txData()
         else:
             print("no data")
             print('No se pudo enviar la informacion')
@@ -284,23 +298,6 @@ try:
 			#os.excel("restart.sh","")
             sys.exit()  
         
-		########ENVIO DE DATOS########
-        if (debug):
-            data = str(rad[1]) + ',' + str(rad[2]) + ',' + str(imu[0]) + ',' + str(imu[1]) + ',' + str(imu[2]) + ',' + 's'
-            try:
-                conn.sendall(data)
-            except socket.error:
-                print('No se pudo enviar la informacion')
-                print("Modulos Desactivados")
-                ardS.write(b'E')
-                ardS.write(b's')
-                if (debug):
-                    conn.close()
-                time.sleep(2)
-				#os.excel("restart.sh","")
-                sys.exit()
-		########ENVIO DE DATOS########
-        
         b1S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente
             print ("Modulos Desactivados")
@@ -312,6 +309,7 @@ try:
             GPIO.cleanup()
 			#os.excel("restart.sh","")
             sys.exit()
+    
         
  #########################MODO MANUAL###############################################
     while b2F == 2: #Modo manual activo
