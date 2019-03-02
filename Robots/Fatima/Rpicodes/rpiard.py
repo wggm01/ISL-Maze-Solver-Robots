@@ -50,7 +50,7 @@ rst_Sensor=[0]
 ###tcp###
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
-HOST= '192.168.25.113'
+HOST= '192.168.25.117'
 PORT= 6790 # Revisar contra el cliente
 ###tcp###
 
@@ -175,7 +175,7 @@ GPIO.output(nmos,GPIO.LOW) #apaga rele
 time.sleep(2)
 GPIO.output(nmos,GPIO.HIGH) #enciende rele
 #ardS = serial.Serial("/dev/serial0", baudrate = 115200) # en espera de level shifter
-ardS = serial.Serial("/dev/ttyUSB0", baudrate =9600)
+ardS = serial.Serial("/dev/ttyUSB0", baudrate =115200)
 
 try:
     #Prende Led de estado y espera lectura de boton.
@@ -309,11 +309,11 @@ try:
         print("MODO MANUAL")
         if ena2S == 1:
             ena2S=0
+            print("Modo manual Activo")
             for i in range(5): #parpadeo 5 veces modo manual
                 GPIO.output(ledS, GPIO.HIGH)
                 time.sleep(1)  # parpadeo indica modo manual
                 GPIO.output(ledS, GPIO.LOW)
-
             ####conexion TCP ######
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.bind((HOST, PORT))
@@ -331,42 +331,40 @@ try:
             print("UART establecido")
         ######ARDUINO ACTIVACION DE SISTEMA#####
         ###control manual###
-        data = conn.recv(1024)
-        if not data:
-            print("Modulos Desactivados")
-            conn.close()
-            time.sleep(2)
-            GPIO.cleanup()
+#        data = conn.recv(1024)
+#        if not data:
+#            print("Modulos Desactivados")
+#            conn.close()
+#            time.sleep(2)
+#            GPIO.cleanup()
             #os.excel("restart.sh","")
-            sys.exit()
+#            sys.exit()
 
         # ANALISIS DE DATA
-        cmdRaw = data.partition('s') # Separa la trama al encontrar el caracter s (cmd,s,'')
-        cmd= cmdRaw[0] # (cmd)
+#        cmdRaw = data.partition('s') # Separa la trama al encontrar el caracter s (cmd,s,'')
+#        cmd= cmdRaw[0] # (cmd)
         #comando = realizar un movimiento
-        if (cmd == 'w'):
-            adelante(0)
-        if (cmd == 'a'):
-            izquierda(0)
-        if (cmd == 'd'):
-            derecha(0)
-        if (cmd == 'q'):
-            spinizq(0)
-        if (cmd == 'e'):
-            spinder(0)
-        if (cmd == 'x'):
-            print("Modulos Desactivados")
-            conn.close()
-            time.sleep(2)
-            GPIO.cleanup()
+#        if (cmd == 'w'):
+#            adelante(0)
+#        if (cmd == 'a'):
+#            izquierda(0)
+#        if (cmd == 'd'):
+#            derecha(0)
+#        if (cmd == 'q'):
+#            spinizq(0)
+#        if (cmd == 'e'):
+#            spinder(0)
+#        if (cmd == 'x'):
+#            print("Modulos Desactivados")
+#            conn.close()
+#            time.sleep(2)
+#            GPIO.cleanup()
             #os.excel("restart.sh","")
-            sys.exit()
+#            sys.exit()
 
-        if (cmd == 'z'):
-            detenerse() #se enviara una z indicando que el boton ha sido soltado.
+#        if (cmd == 'z'):
+#            detenerse() #se enviara una z indicando que el boton ha sido soltado.
         ###control manual###
-
-        print("Modo manual Activo")
 
         b1S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente
