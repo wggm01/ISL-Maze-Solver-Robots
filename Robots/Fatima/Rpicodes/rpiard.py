@@ -125,6 +125,8 @@ def spinder(mode):
 #######Envio de data usando TCP########
 def txData ():
     data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
+    #data = str(rad[1])+','+str(rad[2])+','+'s'
+    #print(data)
     try:
         conn.sendall(data)
     except socket.error:
@@ -141,7 +143,7 @@ def txData ():
 ####adquisicion datat#####
 def rpiard(logic):
     data_raw = ardS.readline()
-    #print(data_raw)
+    print(data_raw)
     if data_raw:
         datastr = data_raw.decode("utf-8")
         dsplit = datastr.split(",")
@@ -166,8 +168,9 @@ def rpiard(logic):
                     #Aqui ira la toma de decision
                     print(rad[0], rad[1], rad[2])
                 if(logic==0):
+                    txData()
                     with open ("reg0-180.csv", "a") as pos:
-                        pos.write("%s, %s \n" % ( theta,r))
+                        pos.write("%s, %s \n" % ( rad[1],rad[2]))
 ####adquisiscion de data####
 
 
@@ -175,8 +178,8 @@ print("###incio del programa###")
 GPIO.output(nmos,GPIO.LOW) #apaga rele
 time.sleep(2)
 GPIO.output(nmos,GPIO.HIGH) #enciende rele
-ardS = serial.Serial("/dev/serial0", baudrate = 115200) # en espera de level shifter
-#ardS = serial.Serial("/dev/ttyUSB0", baudrate =115200)
+#ardS = serial.Serial("/dev/serial0", baudrate = 115200) # en espera de level shifter
+ardS = serial.Serial("/dev/ttyUSB0", baudrate =115200)
 
 try:
     #Prende Led de estado y espera lectura de boton.
@@ -296,7 +299,6 @@ try:
 
  #########################MODO MANUAL###############################################
     while b2F == 2: #Modo manual activo
-        print("MODO MANUAL")
         if ena2S == 1:
             ena2S=0
             print("Modo manual Activo")
@@ -320,6 +322,7 @@ try:
             ardS.write(b's')  # fin de mensaje
             print("UART establecido")
         ######ARDUINO ACTIVACION DE SISTEMA#####
+        rpiard(0)
         ###control manual###
 #        data = conn.recv(1024)
 #        if not data:
