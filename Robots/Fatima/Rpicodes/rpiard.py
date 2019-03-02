@@ -144,7 +144,7 @@ GPIO.output(nmos,GPIO.LOW) #apaga rele
 time.sleep(2)
 GPIO.output(nmos,GPIO.HIGH) #enciende rele
 #ardS = serial.Serial("/dev/serial0", baudrate = 115200) # en espera de level shifter
-ardS = serial.Serial("/dev/ttyUSB0", baudrate = 115200)
+ardS = serial.Serial("/dev/ttyUSB0", baudrate =9600)
 
 try:
     #Prende Led de estado y espera lectura de boton.
