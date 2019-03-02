@@ -10,9 +10,9 @@ GPIO.setmode (GPIO.BCM) #nomenclatura GPIO# no numero de pin
 ledS=19 #led  de estado de espera/eleccion de modo
 b1=25 #boton para confirmacion de conexion con arduino/MODO MANUAL(activacion en lectura de 1)
 b2=16 #boton para modo Maze(activacion en lectura de 1)
-TRIG = 23#ver cual esta libre
-ECHO = 24#ver cual esta libre
-SERVO= 25 #ver cual esta libre
+TRIG = 8
+ECHO = 7
+SERVO= 13 
 timeout=[0]
 ####imu variables###
 RAD_TO_DEG = 57.295779513082320876798154814105 #valor para realizar conversiones de radianes a grados

@@ -131,7 +131,7 @@ def logic(dire,theta,r):
                     return ('q',0)
 
                 else:
-                    return ('x', 1)
+                    return ('y', 1)
                     print("mapeando")
     
     

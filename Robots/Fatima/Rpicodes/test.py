@@ -17,8 +17,6 @@ try:
 except socket.error:
     print('Error Socket')
     print ("Modulos Desactivados")
-    ardS.write(b'E') 
-    ardS.write(b's')
     time.sleep(2)
     sys.exit()
     
@@ -66,26 +64,26 @@ try:
         if data_raw:    
             datastr= data_raw.decode("utf-8")
             dsplit=datastr.split(",")
-            print(dsplit)
+#            print(dsplit)
             if (dsplit[0] == 'I'):
-                #print(dsplit)
+#                print(dsplit)
                 imu[0]=float(dsplit[1])
                 imu[1]=float(dsplit[2])
-                imu[2]=float(dsplit[3]) 
-                #imu[3]=imu[2].rstrip('\r\n')
-                #imu[4]=float(imu[2])      
+                imu[2]=float(dsplit[3])
+#                print(imu[0],imu[1],imu[2]) 
                 continue
             if (dsplit[0]=='R'):
+#                print(dsplit)
                 rad[0] = dsplit[1]
                 rad[1]=float(dsplit[2])
                 rad[2]=dsplit[3]
-                rad[2] = rad[2].rstrip('\n')
+                rad[2] = rad[2].rstrip('\r\n')
                 rad[2] = float(rad[2])
+#                print(rad[0],rad[1],rad[2]) 
                 continue
         else:
             print ("no data")
         txData()
-        #start_new_thread(client_thread, (conn,rad,imu,))
 except KeyboardInterrupt:
     print ("Modulos Desactivados")
     ardS.write(b'E') 
