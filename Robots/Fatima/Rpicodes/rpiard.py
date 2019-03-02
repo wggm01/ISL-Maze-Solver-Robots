@@ -6,6 +6,7 @@ import serial
 import time
 import os
 import socket
+import bluetooth
 GPIO.setmode (GPIO.BCM) #nomenclatura GPIO# no numero de pin
 ledS=19 #led  de estado de espera/eleccion de modo
 b1=25 #boton para confirmacion de conexion con arduino/MODO MANUAL(activacion en lectura de 1)
@@ -50,8 +51,8 @@ rst_Sensor=[0]
 ###tcp###
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
-HOST= '192.168.25.117'
-PORT= 6790 # Revisar contra el cliente
+HOST= '192.168.25.104'
+PORT= 6793 # Revisar contra el cliente
 ###tcp###
 
 ######Movimiento de los motores######
@@ -175,6 +176,7 @@ def rpiard(logic):
                         txData()
                     print(rad[0], rad[1], rad[2])
                 if(logic==0):
+                    print("rpiard 0")
                     txData()
                     with open ("reg0-180.csv", "a") as pos:
                         pos.write("%s, %s \n" % ( rad[1],rad[2]))
@@ -312,7 +314,18 @@ try:
                 time.sleep(1)  # parpadeo indica modo manual
                 GPIO.output(ledS, GPIO.LOW)
             ####conexion Bluetooth ######
-            
+            server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
+            port = 0x1101 #make sure you've set up an RFCOMM sdptool
+            server_sock.bind(("",port))
+            server_sock.listen(1)
+            try:
+                print("Esperando Conexion")
+                client_sock,address = server_sock.accept()
+                print "Conexion Bluetooth establecida ",address
+ 
+            except Exception as e:
+                print("No se ha podido establecer la conexion")
+                server_sock.close()
             ####conexion Bluetooth ######
             ####conexion TCP ######
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -332,14 +345,14 @@ try:
         ######ARDUINO ACTIVACION DE SISTEMA#####
         rpiard(0)
         ###control manual###
-#        data = conn.recv(1024)
-#        if not data:
-#            print("Modulos Desactivados")
-#            conn.close()
-#            time.sleep(2)
-#            GPIO.cleanup()
+        data = client_sock.recv(1024)
+        print(data)
+        if not data:
+            print("Modulos Desactivados")
+            time.sleep(2)
+            GPIO.cleanup()
             #os.excel("restart.sh","")
-#            sys.exit()
+            sys.exit()
         # ANALISIS DE DATA
 #        cmdRaw = data.partition('s') # Separa la trama al encontrar el caracter s (cmd,s,'')
 #        cmd= cmdRaw[0] # (cmd)
