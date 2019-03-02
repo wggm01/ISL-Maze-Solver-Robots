@@ -311,6 +311,9 @@ try:
                 GPIO.output(ledS, GPIO.HIGH)
                 time.sleep(1)  # parpadeo indica modo manual
                 GPIO.output(ledS, GPIO.LOW)
+            ####conexion Bluetooth ######
+            
+            ####conexion Bluetooth ######
             ####conexion TCP ######
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.bind((HOST, PORT))
