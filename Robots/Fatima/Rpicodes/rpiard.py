@@ -56,7 +56,7 @@ rst_Sensor=[0]
 ###tcp###
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
-HOST= '192.168.25.100'
+HOST= '192.168.25.121'
 PORT= 6794 # Revisar contra el cliente
 ###tcp###
 ######Movimiento de los motores######
@@ -70,8 +70,8 @@ def detenerse():
 
 
 def adelante(mode):
-    ena.ChangeDutyCycle(50)  # duty cycle
-    enb.ChangeDutyCycle(50)
+    ena.ChangeDutyCycle(100)  # duty cycle
+    enb.ChangeDutyCycle(100)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.HIGH)
@@ -82,7 +82,7 @@ def adelante(mode):
 
 
 def izquierda(mode):
-    ena.ChangeDutyCycle(50)
+    ena.ChangeDutyCycle(100)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.HIGH)
@@ -93,8 +93,8 @@ def izquierda(mode):
 
 
 def spinizq(mode):
-    ena.ChangeDutyCycle(50)
-    enb.ChangeDutyCycle(50)
+    ena.ChangeDutyCycle(100)
+    enb.ChangeDutyCycle(100)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.HIGH)
     GPIO.output(motorB1, GPIO.HIGH)
@@ -105,7 +105,7 @@ def spinizq(mode):
 
 
 def derecha(mode):
-    enb.ChangeDutyCycle(50)
+    enb.ChangeDutyCycle(100)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.LOW)
@@ -116,8 +116,8 @@ def derecha(mode):
 
 
 def spinder(mode):
-    enb.ChangeDutyCycle(50)
-    ena.ChangeDutyCycle(50)
+    enb.ChangeDutyCycle(100)
+    ena.ChangeDutyCycle(100)
     GPIO.output(motorA1, GPIO.HIGH)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.LOW)
@@ -139,12 +139,16 @@ def threaded(c):
             break
         if data_str == 'w':
             adelante(0)
-        elif data_str == 'a':
+        elif data_str == 'q':
             spinizq(0)
-        elif data_str == 'd':
+        elif data_str == 'e':
             spinder(0)
         elif data_str == 's':
             detenerse()
+        elif data_str == 'a':
+            izquierda(0)
+        elif data_str == 'd':
+            derecha(0)
         else:
             detenerse()
         #print (data)
