@@ -1,0 +1,39 @@
+import processing.net.*; 
+Client myClient; 
+int clicks;
+
+void setup(){
+myClient = new Client(this, "192.168.25.113", 65435);
+
+}
+
+void draw() {
+
+
+
+}
+
+void keyPressed() {
+  switch(key){
+    case 'w':
+      //enviar letra w
+      myClient.write("ws");
+    case 'a': 
+      //enviar letra a
+      myClient.write("as");
+    case 'd':
+      //enviar letra d
+      myClient.write("ds");
+    case 'q':
+      //enviar letra q
+      myClient.write("qs");
+    case 'e':
+      //enviar letra e
+      myClient.write("es");
+    case 'x':
+      //enviar letra x (detiene el programa, termina la coneccion)
+      myClient.write("xs");
+    default:
+      //enviar letra z (detiene el programa, termina la coneccion)
+      myClient.write("zs");
+}
