@@ -6,8 +6,8 @@ import sys
 
 
 ardS = serial.Serial("/dev/ttyUSB0", baudrate = 115200)
-imu=[0,0,0,0,0,0,0,0,0,0] # yaw, pitch, roll
-
+imu=[0,0,0] # yaw, pitch, roll
+rad=['s',0,0] #'dire','ang','distance'
 HOST= '192.168.25.113'
 PORT= 65436
 #######################################################
@@ -27,8 +27,8 @@ s.listen(3) #Maximo tres clientes
 conn, addr = s.accept()
 print('Connected by', addr)
 
-def txData (ang,d,yaw,pitch,roll):
-    data = str(ang)+','+str(d)+','+str(yaw)+','+str(pitch)+','+str(roll)+','+'s'
+def txData (rad[1],rad[2],imu[0],imu[1],imu[2]):
+    data = str(rad[1])+','+str(rad[2)+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
     try:
         conn.sendall(data)
         
@@ -48,11 +48,10 @@ for i in range(0,1):
     time.sleep(1)
     ardS.write(b's') #fin de mensaje
     time.sleep(0.5)
-    print(i)
+    print("Intentando conectar")
 print("UART establecido")
-
+ 
 try:
-    
     while (True):
         data_raw = ardS.readline()
         if data_raw:    
@@ -62,25 +61,18 @@ try:
                 #print(dsplit)
                 imu[0]=float(dsplit[1])
                 imu[1]=float(dsplit[2])
-                imu[2]=dsplit[3]
-                imu[2]=imu[2].rstrip('\r\n')
-                imu[2]=float(imu[2])
-                
+                imu[2]=float(dsplit[3])
+                #imu[3]=imu[2].rstrip('\r\n')
+                #imu[4]=float(imu[2])      
                 continue
             if (dsplit[0]=='R'):
-                dire = dsplit[1]
-                ang=float(dsplit[2])
-                d=dsplit[3]
-                d = d.rstrip('\n')
-                d = float(d)
-                yaw=imu[0]
-                pitch=imu[1]
-                roll=imu[2]
-                txData(ang,d,yaw,pitch,roll)
-                #print(dsplit)
+                rad[0] = dsplit[1]
+                rad[1]=float(dsplit[2])
+                rad[2]=dsplit[3]
+                rad[2] = d.rstrip('\n')
+                rad[2] = float(d)
                 continue
         else:
-            
             print ("no data")
         
         

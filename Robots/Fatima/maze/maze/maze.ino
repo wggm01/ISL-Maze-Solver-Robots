@@ -13,11 +13,13 @@ boolean stringComplete = false;  // whether the string is complete
 int flagSerial = 1; //control de envio de instrucciones
 int flagIMU = 0;
 int flagRadar = 0;
+int servoattach=1;
 //Serial
 //Servos
 Servo txServo;
 //Servos
 //HC-SR04
+float distance;
 #define TRIG_PIN A1
 #define ECHO_PIN A0
 HCSR04 rad(TRIG_PIN, ECHO_PIN, 20, 400);
@@ -31,10 +33,7 @@ void setup() {
   txServo.attach(6);
   txServo.write(5);
   //Servos
-  //HC-SR04
-  pinMode(trigPin, OUTPUT); 
-  pinMode(echoPin, INPUT);
-  //HC-SR04
+ 
   //MPU
   while(!Serial) {}
 
@@ -52,9 +51,10 @@ void setup() {
 
 //--------Funciones--------------//
 void radar(){
+  
   for(int i=5;i<=181;i++){  
   txServo.write(i);
-  //delay(5);
+  delay(5);
   distance = calculateDistance();
   Serial.print("R");
   Serial.print(",");
@@ -73,7 +73,7 @@ data_IMU();}
  
   for(int i=181;i>5;i--){  
   txServo.write(i);
-  //delay(5);
+  delay(5);
   distance = calculateDistance();
   Serial.print("R");
   Serial.print(",");
@@ -89,10 +89,13 @@ if (flagIMU==1){
 data_IMU();}
 //CONTROL DE IMU 
   }}
+  
 int calculateDistance(){ 
-  distancemm=rad.distanceInMillimeters()
-  distance= distancemm*0.1; //cm
-  return distance;}
+  float distancemm=rad.distanceInMillimeters();
+  float distancep= distancemm*0.1;
+  if (distancep < 1){distancep=80;}//cm
+  
+  return distancep;}
 
   void data_IMU(){
  IMU.readSensor();
@@ -102,26 +105,13 @@ Serial.print(IMU.getGyroX_rads(),6);
 Serial.print(",");
 Serial.print(IMU.getGyroY_rads(),6);
 Serial.print(",");
-Serial.print(IMU.getGyroZ_rads(),6);
-Serial.print(",");
-Serial.print(IMU.getAccelX_mss(),6);
-Serial.print(",");
-Serial.print(IMU.getAccelY_mss(),6);
-Serial.print(",");
-Serial.print(IMU.getAccelZ_mss(),6);
-Serial.print(",");
-Serial.print(IMU.getMagX_uT(),6);
-Serial.print(",");
-Serial.print(IMU.getMagY_uT(),6);
-Serial.print(",");
-Serial.print(IMU.getMagZ_uT(),6);
-Serial.print(",");
-Serial.println(IMU.getTemperature_C(),6);}
-    
+Serial.println(IMU.getGyroZ_rads(),6);} 
 //--------Funciones--------------//
 
 void loop() {
 //PROCESO DE INICIALIZACION
+if(servoattach==1){txServo.detach();}
+
 if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
   if (stringComplete) {
        char cmd1 = cmd[0];
@@ -131,11 +121,14 @@ if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
       else{
         if (cmd1== 'R'){ 
             flagIMU = 1; //Activa la transmision de data de imu
-            flagRadar = 1;}
+            flagRadar = 1;
+            servoattach=0;
+            txServo.attach(6);}
             //Serial.println(cmd1);}//Activa la transmision de data de radar
         else if(cmd1== 'E'){
             flagRadar = 0;
             flagIMU =0;//todo se desactiva
+            servoattach=0;
             flagSerial=0;}
             //Serial.println(cmd1);}
             }
