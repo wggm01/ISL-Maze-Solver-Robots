@@ -1,6 +1,6 @@
-//Cliente
-import processing.net.*; 
+//Cliente 
 import java.io.IOException;
+import processing.net.*; 
 Client myClient;
 String inString;
 byte interesting = 115;
@@ -10,9 +10,9 @@ PShape pieta;
 float rotx,roty,rotz;
 void setup() {
   size(640,480, P3D);
-  myClient = new Client(this, "192.168.25.113", 65435);
   pieta = loadShape("Frpi.obj");
   pieta.setFill(0xffff007f);
+  myClient = new Client(this, "192.168.25.113", 65437);
 }
 
 void draw() {
@@ -20,16 +20,18 @@ void draw() {
   background(0xffffffff);
   lights();
   camera(0,0,100 , 0, 0, 0, 0, -1, 0); //eje z positivo saliendo
-  if (myClient.available() > 0) {  
-    inString = myClient.readStringUntil(interesting);
-    String[] rx = split(inString,',');
-    //convertir str a float
-   rotx=float(rx[2]);
-   roty=float(rx[3]); //conversion de data.
-   rotz=float(rx[4]);
-    //println(rx[0],rx[1]);}
-  delay(0.5);
+  if (myClient.available() > 0) { 
+  inString = myClient.readStringUntil(interesting);
+  String[] rx = split(inString,','); 
+  //convertir str a float
+  rotx=float(rx[2]);
+  roty=float(rx[3]); //conversion de data.
+  rotz=float(rx[4]);
+  
+  
+  }
+  delay(5);
   shape(pieta);
-  pieta.rotateX(rotx); pieta.rotateY(roty); pieta.rotateZ(rotz);
+  pieta.rotateX(rotx); pieta.rotateY(roty);
   
 }

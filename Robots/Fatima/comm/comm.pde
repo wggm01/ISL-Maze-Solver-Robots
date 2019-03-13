@@ -8,11 +8,15 @@ float iAngle,iDistance;
 float pixsDistance;
 String noObject;
 PFont orcFont;
-void setup() { 
+
+void setup() {
   size (640, 480); //Ancho, alto
   smooth(); //Geometrica con bordes suaves Antialiasing
   orcFont = loadFont("OCRAExtended-30.vlw"); //Carga las fuentes en formato vlw y la lee como una imagen por letra o simbolo
-  myClient = new Client(this, "192.168.25.113", 65436); 
+  myClient = new Client(this, "192.168.25.113", 65437);
+  //-----------------------------------//
+  
+ //-----------------------------------//
 } 
 //0,0 esta en la esquina superior izquierda
 //todo esta en  pixeles 
@@ -122,22 +126,23 @@ void draw() {
     //convertir str a float
    iAngle=float(rx[0]);
    iDistance=float(rx[1]); //conversion de data.
+   //convertir str a float
+    rotx=float(rx[2]);
+    roty=float(rx[3]); //conversion de data.
+    rotz=float(rx[4]);
     //println(rx[0],rx[1]);
-    println(rx[2],rx[3],rx[4]);
-  }
+}
     
  fill(98,245,31);
  textFont(orcFont);
  noStroke();
  fill(0,4); 
  rect(0, 0, width, height-height*0.065); 
- 
+
  drawRadar(); 
  drawLine();
  drawObject();
  drawText();
+ } 
  
  
-
- 
-} 

@@ -1,7 +1,5 @@
-#include <hcsr04.h>
 #include <Servo.h>
 #include "MPU9250.h"
-
 //MPU
 MPU9250 IMU(Wire,0x68);
 int status;
@@ -18,12 +16,12 @@ int servoattach=1;
 //Servos
 Servo txServo;
 //Servos
+
 //HC-SR04
-float distance;
+float distance; //crea la variable "distancia"
+float tiempo; //crea la variable tiempo (como float)
 #define TRIG_PIN A1
 #define ECHO_PIN A0
-HCSR04 rad(TRIG_PIN, ECHO_PIN, 20, 400);
-
 //HC-SR04
 
 void setup() {
@@ -33,10 +31,12 @@ void setup() {
   txServo.attach(6);
   txServo.write(5);
   //Servos
- 
+  //HC-SR04
+  pinMode(TRIG_PIN, OUTPUT); 
+  pinMode(ECHO_PIN, INPUT); 
+  //HC-SR04
   //MPU
   while(!Serial) {}
-
   // start communication with IMU 
   status = IMU.begin();
   if (status < 0) {
@@ -91,10 +91,13 @@ data_IMU();}
   }}
   
 int calculateDistance(){ 
-  float distancemm=rad.distanceInMillimeters();
-  float distancep= distancemm*0.1;
-  if (distancep < 1){distancep=80;}//cm
-  
+  digitalWrite(TRIG_PIN,LOW);
+  delayMicroseconds(5);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  tiempo = pulseIn(ECHO_PIN, HIGH,2915);
+  int distancep = 0.01715*tiempo;
+  if (distancep < 1){distancep=80;}
   return distancep;}
 
   void data_IMU(){
