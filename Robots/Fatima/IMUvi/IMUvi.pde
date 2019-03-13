@@ -27,11 +27,8 @@ void draw() {
   rotx=float(rx[2]);
   roty=float(rx[3]); //conversion de data.
   rotz=float(rx[4]);
-  
-  
   }
   delay(5);
   shape(pieta);
   pieta.rotateX(rotx); pieta.rotateY(roty);
-  
 }

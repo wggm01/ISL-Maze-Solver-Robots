@@ -3,7 +3,7 @@ import csv
 import serial
 import socket
 import sys
-from thread import start_new_thread
+from _thread import*
 
 ardS = serial.Serial("/dev/ttyUSB0", baudrate = 115200)
 imu=[0,0,0] # yaw, pitch, roll
@@ -28,21 +28,22 @@ conn, addr = s.accept()
 print('Connected by', addr)
 
 #Creacion de thread
-def client_thread(conn):
-    for i in range(0,100):
-        data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
-        try:
-            conn.sendall(data)
-        except socket.error:
-            print ('No se pudo enviar la informacion')
-            print ("Modulos Desactivados")
-            ardS.write(b'E') 
-            ardS.write(b's')
-            conn.close()
-            time.sleep(2)
-            sys.exit()
+def client_thread(conn,rad,imu):
     
-###################
+    try:
+        data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
+        conn.sendall(data)
+        print("Termine_Thread")
+    except socket.error:
+        print ('No se pudo enviar la informacion')
+        print ("Modulos Desactivados")
+        ardS.write(b'E') 
+        ardS.write(b's')
+        conn.close()
+        time.sleep(2)
+        sys.exit()
+    
+########SIN USO POR EL MOMENTO###########
 def txData ():
     data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
     try:
@@ -57,7 +58,13 @@ def txData ():
         time.sleep(2)
         sys.exit()
     
-########################################################    
+##########SIN USO POR EL MOMENTO###########    
+
+##########ADQUISICION DE CLIENTES##########
+for i in range(3):
+    conn, addr = s.accept()
+    print('Connected by', addr)
+##########ADQUISICION DE CLIENTES##########
 
 for i in range(0,1):
     ardS.write(b'R') #Activacion de los sensores
@@ -91,7 +98,7 @@ try:
         else:
             print ("no data")
         
-        #txData()
+        start_new_thread(client_thread, (conn,rad,imu,))
 except KeyboardInterrupt:
     print ("Modulos Desactivados")
     ardS.write(b'E') 
