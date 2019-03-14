@@ -1,8 +1,12 @@
 #include <Servo.h>
 #include "MPU9250.h"
+#define RAD_TO_DEG 57.295779513082320876798154814105
 //MPU
 MPU9250 IMU(Wire,0x68);
 int status;
+float intex = 0;
+float intey = 0;
+float intez = 0;
 //MPU
 //Serial
 char cmd[2];
@@ -102,19 +106,34 @@ int calculateDistance(){
 
   void data_IMU(){
  IMU.readSensor();
+ float gx = IMU.getGyroX_rads();
+ float gy = IMU.getGyroY_rads();
+ float gz = IMU.getGyroZ_rads();
+ float ax = IMU.getAccelX_mss();
+ float ay = IMU.getAccelY_mss();
+ float az = IMU.getAccelZ_mss();
+ intex +=gx*RAD_TO_DEG;
+ intey +=gy*RAD_TO_DEG;
+ intez +=gz*RAD_TO_DEG;
+ float axg = map(ax, -9, 9,-1,1);
+ float ayg = map(ay, -9, 9,-1,1);
+ float azg = map(az, -9, 9,-1,1);
+ float angx= 0.98*intex +0.02*axg;
+ float angy= 0.98*intey +0.02*ayg;
+ float angz= intez;
 Serial.print("I");
 Serial.print(",");
-Serial.print(IMU.getGyroX_rads(),6);
+Serial.print(angx,6);
 Serial.print(",");
-Serial.print(IMU.getGyroY_rads(),6);
+Serial.print(angy,6);
 Serial.print(",");
-Serial.println(IMU.getGyroZ_rads(),6);} 
+Serial.println(angz,6);
+} 
 //--------Funciones--------------//
 
 void loop() {
 //PROCESO DE INICIALIZACION
 if(servoattach==1){txServo.detach();}
-
 if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
   if (stringComplete) {
        char cmd1 = cmd[0];
@@ -141,7 +160,9 @@ if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
 
 //CONTROL DE RADAR
 if(flagRadar == 1){
+  
 radar();
+//data_IMU();
   }}
 
 

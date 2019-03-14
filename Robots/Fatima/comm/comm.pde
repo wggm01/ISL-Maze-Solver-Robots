@@ -1,19 +1,27 @@
 //Cliente
 import processing.net.*; 
 import java.io.IOException;
-Client myClient; 
+Client radar; 
+Server myServer;
 String inString;
 byte interesting = 115;
 float iAngle,iDistance;
 float pixsDistance;
 String noObject;
 PFont orcFont;
+Table table;
+
 
 void setup() {
   size (640, 480); //Ancho, alto
   smooth(); //Geometrica con bordes suaves Antialiasing
   orcFont = loadFont("OCRAExtended-30.vlw"); //Carga las fuentes en formato vlw y la lee como una imagen por letra o simbolo
-  myClient = new Client(this, "192.168.25.113", 65437);
+  table = new Table();
+  table.addColumn("rotx");
+  table.addColumn("roty");
+  table.addColumn("rotz");
+  radar = new Client(this, "192.168.25.113", 65441);
+  myServer = new Server(this, 5204);
   //-----------------------------------//
   
  //-----------------------------------//
@@ -120,17 +128,24 @@ void drawText() { // draws the texts on the screen
 }
 
 void draw() { 
-  if (myClient.available() > 0) {  
-    inString = myClient.readStringUntil(interesting);
+  if (radar.available() > 0) {  
+    inString = radar.readStringUntil(interesting);
     String[] rx = split(inString,',');
     //convertir str a float
    iAngle=float(rx[0]);
    iDistance=float(rx[1]); //conversion de data.
-   //convertir str a float
-    rotx=float(rx[2]);
-    roty=float(rx[3]); //conversion de data.
-    rotz=float(rx[4]);
-    //println(rx[0],rx[1]);
+   String rotx=rx[2];
+   String roty=rx[3];
+   String rotz=rx[4];
+   String data = rotx + ',' + roty + ',' + rotz + ',' + 's' ;
+   myServer.write(data);
+   //println(data);
+  /* TableRow newRow = table.addRow();
+   newRow.setString("rotx", rx[2]);
+   newRow.setString("roty", rx[3]);
+   newRow.setString("rotz", rx[4]);
+   saveTable(table, "data/new.csv");*/
+   
 }
     
  fill(98,245,31);

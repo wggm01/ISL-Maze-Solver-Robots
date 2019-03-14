@@ -12,7 +12,7 @@ void setup() {
   size(640,480, P3D);
   pieta = loadShape("Frpi.obj");
   pieta.setFill(0xffff007f);
-  myClient = new Client(this, "192.168.25.113", 65437);
+  myClient = new Client(this, "192.168.25.101", 5204);
 }
 
 void draw() {
@@ -22,11 +22,13 @@ void draw() {
   camera(0,0,100 , 0, 0, 0, 0, -1, 0); //eje z positivo saliendo
   if (myClient.available() > 0) { 
   inString = myClient.readStringUntil(interesting);
-  String[] rx = split(inString,','); 
+  String[] rx = split(inString,',');
+  //println(rx[0],rx[1],rx[2]);
   //convertir str a float
-  rotx=float(rx[2]);
-  roty=float(rx[3]); //conversion de data.
-  rotz=float(rx[4]);
+  rotx=float(rx[0]);
+  roty=float(rx[1]); //conversion de data.
+  rotz=float(rx[2]);
+  //println(rotx,roty,rotz);
   }
   delay(5);
   shape(pieta);
