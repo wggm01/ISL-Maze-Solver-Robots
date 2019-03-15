@@ -1,12 +1,15 @@
 #include <Servo.h>
 #include "MPU9250.h"
+#include "math.h"
 #define RAD_TO_DEG 57.295779513082320876798154814105
 //MPU
 MPU9250 IMU(Wire,0x68);
 int status;
-float intex = 0;
-float intey = 0;
-float intez = 0;
+float gpitch,groll,gyaw;
+float gyroRatex,gyroRatey,gyroRatez;
+float accRatex,accRatey,accRatez;
+float accpitch,accroll;
+float pitch,roll,yaw;
 //MPU
 //Serial
 char cmd[2];
@@ -29,6 +32,7 @@ float tiempo; //crea la variable tiempo (como float)
 //HC-SR04
 
 void setup() {
+   pinMode(LED_BUILTIN, OUTPUT); //Indicador de proceso de calibracion
   // initialize serial:
   Serial.begin(115200);
   //Servos
@@ -40,16 +44,55 @@ void setup() {
   pinMode(ECHO_PIN, INPUT); 
   //HC-SR04
   //MPU
-  while(!Serial) {}
+ while(!Serial) {Serial.println("Problemas con IMU");}
+
   // start communication with IMU 
   status = IMU.begin();
-  if (status < 0) {
+   if (status < 0) {
     Serial.println("IMU initialization unsuccessful");
     Serial.println("Check IMU wiring or try cycling power");
     Serial.print("Status: ");
     Serial.println(status);
     while(1) {}
-  } 
+  }
+  // setting the accelerometer full scale range to +/-8G 
+  IMU.setAccelRange(MPU9250::ACCEL_RANGE_2G);
+  // setting the gyroscope full scale range to +/-500 deg/s
+  IMU.setGyroRange(MPU9250::GYRO_RANGE_250DPS);
+  // setting DLPF bandwidth to 20 Hz
+  IMU.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ);
+  // setting SRD to 19 for a 50 Hz update rate (cada 20 ms)
+  IMU.setSrd(19);//frecuencia de actualizacion de datos del imu (magnetometroData Output Rate = 8Hz)
+ 
+  //Calibracion de Gyro
+  int gC = IMU.calibrateGyro();
+  if (gC>0){
+    Serial.println("Gyro calibrado");
+   for(int i=0; i<2; i++ ){
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW); 
+    }}else{Serial.println("Error Gyro");}
+    
+ //Calibracion de Acce
+ int aC =IMU.calibrateAccel();
+  if (aC>0){
+    Serial.println("Acce calibrado");
+   for(int i=0; i<3; i++ ){
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW); 
+    }}else{Serial.println("Error Gyro");}
+  Serial.println("Mueva ligeramente el dispositivo");   
+//Calibracion magnetometro
+ int mC =IMU.calibrateAccel();
+ if (mC>0){
+    Serial.println("Mag calibrado");
+   for(int i=0; i<4; i++ ){
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW); 
+    }}else{Serial.println("Error Gyro");}
   //MPU
 }
 
@@ -70,8 +113,11 @@ void radar(){
   //Serial.print(".");
   Serial.println("\n");
   //CONTROL DE IMU
+uint32_t ts1 = micros();
 if (flagIMU==1){
 data_IMU();}
+uint32_t ts1 = micros();
+Serial.println(ts2-ts1);
 //CONTROL DE IMU 
   }
  
@@ -89,6 +135,7 @@ data_IMU();}
   //Serial.print(".");
   Serial.print("\n");
   //CONTROL DE IMU
+
 if (flagIMU==1){
 data_IMU();}
 //CONTROL DE IMU 
@@ -105,34 +152,37 @@ int calculateDistance(){
   return distancep;}
 
   void data_IMU(){
- IMU.readSensor();
- float gx = IMU.getGyroX_rads();
- float gy = IMU.getGyroY_rads();
- float gz = IMU.getGyroZ_rads();
- float ax = IMU.getAccelX_mss();
- float ay = IMU.getAccelY_mss();
- float az = IMU.getAccelZ_mss();
- intex +=gx*RAD_TO_DEG;
- intey +=gy*RAD_TO_DEG;
- intez +=gz*RAD_TO_DEG;
- float axg = map(ax, -9, 9,-1,1);
- float ayg = map(ay, -9, 9,-1,1);
- float azg = map(az, -9, 9,-1,1);
- float angx= 0.98*intex +0.02*axg;
- float angy= 0.98*intey +0.02*ayg;
- float angz= intez;
-Serial.print("I");
-Serial.print(",");
-Serial.print(angx,6);
-Serial.print(",");
-Serial.print(angy,6);
-Serial.print(",");
-Serial.println(angz,6);
+  IMU.readSensor();
+  // display the data
+  gyroRatex=IMU.getGyroX_rads();
+  gyroRatey=IMU.getGyroY_rads();
+  gyroRatez=IMU.getGyroZ_rads();
+  gpitch +=(gyroRatex/50)*RAD_TO_DEG;
+  groll +=(gyroRatey/50)*RAD_TO_DEG;
+  gyaw +=(gyroRatez/50)*RAD_TO_DEG;
+  accRatex=IMU.getAccelX_mss();
+  accRatey=IMU.getAccelY_mss();
+  accRatez=IMU.getAccelZ_mss();
+  accRatex=accRatex*0.10197162129779;
+  accRatey=accRatey*0.10197162129779;
+  accRatez=accRatez*0.10197162129779;
+  accpitch= atan(accRatex/sqrt(pow(accRatey,2) + pow(accRatez,2)))*(RAD_TO_DEG);
+  accroll= atan(accRatey/sqrt(pow(accRatex,2) + pow(accRatez,2)))*(RAD_TO_DEG);
+  //Filtro complementario:
+  pitch = 0.97402*gpitch + accpitch*0.02598;
+  roll = 0.97402*groll + accroll*0.02598;
+  yaw= gyaw; 
+  Serial.print(pitch);
+  Serial.print(",");
+  Serial.print(roll);
+  Serial.print(",");
+  Serial.println(yaw);
 } 
 //--------Funciones--------------//
 
 void loop() {
 //PROCESO DE INICIALIZACION
+
 if(servoattach==1){txServo.detach();}
 if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
   if (stringComplete) {
@@ -162,7 +212,6 @@ if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
 if(flagRadar == 1){
   
 radar();
-//data_IMU();
   }}
 
 
