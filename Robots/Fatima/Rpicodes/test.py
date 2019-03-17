@@ -31,7 +31,7 @@ conn, addr = s.accept()
 print('Connected by', addr)
 
     
-########SIN USO POR EL MOMENTO###########
+
 def txData ():
     data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
     try:

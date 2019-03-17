@@ -107,15 +107,15 @@ def mov():
     cmd= cmdRaw[0] # (cmd)
     # envase al comando realizar un movimiento
     if (cmd == 'w'):
-        adelante()
+        adelante(0)
     if (cmd == 'a'):
-        izquierda()
+        izquierda(0)
     if (cmd == 'd'):
-        derecha()
+        derecha(0)
     if (cmd == 'q'):
-        spinizq()
+        spinizq(0)
     if (cmd == 'e'):
-        spinder()
+        spinder(0)
     if (cmd == 'x'):
         print("Modulos Desactivados")
         conn.close()
