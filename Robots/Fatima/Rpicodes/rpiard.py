@@ -1,6 +1,5 @@
 
 from mazelogic import logic # se encarga de la logica en el modo maze(opcion de debugger usando procesing)
-from locomo import mov # se encarga de los movimientos en el modo manual
 import RPi.GPIO as GPIO
 import sys
 import serial
