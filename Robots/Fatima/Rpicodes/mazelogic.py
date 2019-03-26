@@ -90,7 +90,7 @@ def logic(dire,theta,r):
             # decision de movimiento:
             rmov[0] = str(movlog[0]) + str(movlog[1]) + str(movlog[2]) + str(movlog[3])
             print(rmov[0])
-            idle[0] = 1  # identificador de que se completo el analisis en cw
+            idle[0] = 1  # identificador de que se completo el analisis en ccw
 
 
 ############################################################                        
@@ -167,27 +167,28 @@ def logic(dire,theta,r):
                 # avanzar recto
                 idle[0] = 0
                 idle[1] = 0
-                return 'w'
+                return ('w',0)
+
             if mov == "0001":
                 # avanzar izquierda 90 grados
                 idle[0] = 0
                 idle[1] = 0
-                return 'a'
+                return ('a',0)
+
             if mov == "1000":
                 # avanzar derecha 90 grados
                 idle[0] = 0
                 idle[1] = 0
-                return 'd'
+                return ('d',0)
+
             if mov == "1111":
                 # rotar 180
-                return 'q'
                 idle[0] = 0
                 idle[1] = 0
+                return ('q',0)
 
         else:
+            return ('x', 1)
             print("mapeando")
-
-                    
-
 ######################################
 

@@ -33,6 +33,7 @@ enb=GPIO.PWM(motorenb,500)
 ena.start(0)
 enb.start(0)
 ####INCIALIZACION DE PINES PARA L298N####
+
 ###CONTROL DE INCIIALIZACION###
 flag=0 #activa la secuencia de activacion y acepta el modo debug
 flag1=0 #se encarga de salir del while en el que se elije el modo debug
@@ -41,6 +42,7 @@ b2F=0 #elige el modo manual
 enaS=1 # Flag para correr codigo una sola vez
 ena2S=1 #Flag para correr codigo una sola vez
 debug =0 #control de modo debug
+ena_Sensor=0
 ###CONTROL DE INCIIALIZACION###
 
 ###tcp###
@@ -155,7 +157,7 @@ def mov():
         detenerse() #se enviara una z indicando que el boton ha sido soltado.
 ###control manual###
 
-###incio del programa###
+print("###incio del programa###")
 GPIO.output(nmos,GPIO.LOW) #apaga rele
 time.sleep(2)
 GPIO.output(nmos,GPIO.HIGH) #enciende rele
@@ -261,18 +263,24 @@ try:
                 GPIO.output(ledS, GPIO.HIGH)
                 time.sleep(1)
                 GPIO.output(ledS, GPIO.LOW)
+			GPIO.output(ledS, GPIO.LOW)
 
-            if (debug):
         ######ARDUINO ACTIVACION DE SISTEMA#####
-        for i in range(0, 1):
-			ardS.write(b'R')  # Activacion de los sensores
-			time.sleep(1)
-			ardS.write(b's')  # fin de mensaje
-			time.sleep(0.5)
-			print("Intentando conectar")
-        print("UART establecido")
-        ######ARDUINO ACTIVACION DE SISTEMA#####       
-        
+        if ena_Sensor==0:
+            for i in range(0, 1):
+                ardS.write(b'R')  # Activacion de los sensores
+                time.sleep(1)
+                ardS.write(b's')  # fin de mensaje
+                time.sleep(0.5)
+                print("Intentando conectar")
+            print("UART establecido")
+        else:
+            ardS.write(b'E')  # Activacion de los sensores
+            time.sleep(1)
+            ardS.write(b's')  # fin de mensaje
+            time.sleep(0.5)
+        ######ARDUINO ACTIVACION DE SISTEMA#####
+
         ###ANALISIS DE DATA PROVENIENETE DEL ARDUINO###
         data_raw = ardS.readline()
         if data_raw:
@@ -304,8 +312,12 @@ try:
             time.sleep(2)
 			#os.excel("restart.sh","")
             sys.exit()
+		###ANALISIS DE DATA PROVENIENETE DEL ARDUINO###	
+		
         ########LOGICA DE MAZE########
-        cmd = mazelogic.logic(rad[0], rad[1], rad[2])
+        cmd_raw = mazelogic.logic(rad[0], rad[1], rad[2])
+		cmd,rstSensor= cmd_raw.split(",")
+
         if (cmd == 'w'):
             adelante(1)
         if (cmd == 'a'):
@@ -318,8 +330,10 @@ try:
             spinder(1)
         else:
             detenerse()
+        ena_Sensor=rstSensor
         ########LOGICA DE MAZE########
-
+		
+		########ENVIO DE DATOS########
         if (debug):
             data = str(rad[1]) + ',' + str(rad[2]) + ',' + str(imu[0]) + ',' + str(imu[1]) + ',' + str(imu[2]) + ',' + 's'
             try:
@@ -334,9 +348,8 @@ try:
                 time.sleep(2)
 				#os.excel("restart.sh","")
                 sys.exit()
-
-        ###ANALISIS DE DATA PROVENIENETE DEL ARDUINO###
-
+		########ENVIO DE DATOS########
+       
         b1S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente
             print ("Modulos Desactivados")
@@ -348,6 +361,7 @@ try:
             GPIO.cleanup()
 			#os.excel("restart.sh","")
             sys.exit()
+			
  #########################MODO MANUAL###############################################
     while b2F == 2: #Modo manual activo
         if ena2S = 1:
