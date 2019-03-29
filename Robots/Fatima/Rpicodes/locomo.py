@@ -7,11 +7,12 @@ import socket
 import RPi.GPIO as GPIO
 
 HOST = '192.168.25.113' #IP DE LA RASPBERRY
-PORT = 65435
+PORT = 65437
 
 s= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(5)
+print("Creando Socket")
 conn, addr = s.accept()
 
 GPIO.setmode (GPIO.BCM)
@@ -35,7 +36,7 @@ ena.start(0)
 enb.start(0)
 
 def adelante():
-#    print "adelante"
+    print "adelante"
     ena.ChangeDutyCycle(100) #duty cycle(40,40)
     enb.ChangeDutyCycle(100)
     GPIO.output(motorA1,GPIO.LOW)
@@ -44,7 +45,7 @@ def adelante():
     GPIO.output(motorB2,GPIO.HIGH)
 
 def izquierda():
- #   print "izquierda"
+    print "izquierda"
     #duty cycle
     ena.ChangeDutyCycle(90)
     enb.ChangeDutyCycle(0)
@@ -54,7 +55,7 @@ def izquierda():
     GPIO.output(motorB2,GPIO.LOW)
 
 def spinizq():
-#    print "izquierda(spin)"
+    print "izquierda(spin)"
     #duty cycle
     ena.ChangeDutyCycle(100)
     enb.ChangeDutyCycle(100)
@@ -65,7 +66,7 @@ def spinizq():
 
 
 def derecha():
-#    print "derecha"
+    print "derecha"
     #duty cycle
     enb.ChangeDutyCycle(100)
     ena.ChangeDutyCycle(0)
@@ -75,7 +76,7 @@ def derecha():
     GPIO.output(motorB2,GPIO.HIGH)
 
 def spinder():
-#    print "derecha(spin)"
+    print "derecha(spin)"
     #duty cycle
     enb.ChangeDutyCycle(100)
     ena.ChangeDutyCycle(100)
@@ -86,7 +87,7 @@ def spinder():
 
 
 def detenerse():
-#    print "detenerse"
+    print "detenerse"
     #duty cycle
     ena.ChangeDutyCycle(0)
     enb.ChangeDutyCycle(0)
@@ -98,31 +99,47 @@ def detenerse():
 
 def mov():
     data = conn.recv(1024)
+    
     if not data:
-        return 0
-    else:
-        return 1
+        print("Modulos Desactivados")
+        conn.close()
+        time.sleep(2)
+        GPIO.cleanup()
+        sys.exit()
+
     # ANALISIS DE DATA
     cmdRaw = data.partition('s') # Separa la trama al encontrar el caracter s (cmd,s,'')
+    
     cmd= cmdRaw[0] # (cmd)
+    #print (cmdRaw[0])
     # envase al comando realizar un movimiento
     if (cmd == 'w'):
-        adelante(0)
+        adelante()
     if (cmd == 'a'):
-        izquierda(0)
+        izquierda()
     if (cmd == 'd'):
-        derecha(0)
+        derecha()
     if (cmd == 'q'):
-        spinizq(0)
+        spinizq()
     if (cmd == 'e'):
-        spinder(0)
+        spinder()
     if (cmd == 'x'):
         print("Modulos Desactivados")
         conn.close()
         time.sleep(2)
         GPIO.cleanup()
         sys.exit()
-    else:
+    if (cmd == 'z'):
         detenerse() #se enviara una z indicando que el boton ha sido soltado.
-
-
+print("khe empiezen los juegos del hambre")
+while True:
+    
+    try:
+        mov()
+    except KeyboardInterrupt:
+        print("Modulos Desactivados")
+        conn.close()
+        time.sleep(2)
+        GPIO.cleanup()
+        sys.exit()
+        

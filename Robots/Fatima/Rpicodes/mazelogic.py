@@ -131,8 +131,8 @@ def logic(dire,theta,r):
             regC_cw[2] += 1
             # promedio de distancia[max dist 38cm]
             if theta == 45:
-               average_cw[2]=sum(pnt2_cw)/len(pnt2_cw)
-                if average_cw[2] <40:
+                average_cw[2]=sum(pnt2_cw)/len(pnt2_cw)
+                if (average_cw[2]<40):
                     movlog_cw[1] = 1
                     regC_cw[2] = 0
                 else:
