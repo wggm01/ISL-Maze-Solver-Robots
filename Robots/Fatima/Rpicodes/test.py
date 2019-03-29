@@ -7,7 +7,7 @@ import sys
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
 HOST= '192.168.25.113'
-PORT= 65441
+PORT= 6790
 
 #######################################################
 print("Creando Socket")
@@ -66,6 +66,7 @@ try:
         if data_raw:    
             datastr= data_raw.decode("utf-8")
             dsplit=datastr.split(",")
+            print(dsplit)
             if (dsplit[0] == 'I'):
                 #print(dsplit)
                 imu[0]=float(dsplit[1])

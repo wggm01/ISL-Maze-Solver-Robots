@@ -1,5 +1,5 @@
 
-from mazelogic import logic # se encarga de la logica en el modo maze(opcion de debugger usando procesing)
+import mazelogic # se encarga de la logica en el modo maze(opcion de debugger usando procesing)
 import RPi.GPIO as GPIO
 import sys
 import serial
@@ -137,7 +137,7 @@ try:
     
     time.sleep(0.5)#dejar que actue la raspberry
     while (flag == 0):
-        print ("wating Arduino")
+        print ("Incializando Arduino")
         #b1S=GPIO.input(b1)
         #time.sleep(0.5)
         ardR=ardS.readline()
@@ -166,7 +166,7 @@ try:
             time.sleep(0.5)
             if (b1S == 1):
                 b1F=1 #bandera para modo maze
-                print(b1F)
+                #print(b1F)
                 break
             b2S=GPIO.input(b2) #ALMACENO EL ESTADO ACTUAL
             time.sleep(0.5)
@@ -176,14 +176,10 @@ try:
                 break #SALE DEL WHILE SI ALGUNO DE LOS DOS ES PRESIONADO
 ####################MODO MAZE###################################
     while b1F == 1: #Modo maze activo
-        print("MODO MAZE")
+        
         # control de modo debug:
         while (flag == 1): #bandera flag reutilizada
-            for i in range(2):
-                GPIO.output(ledS, GPIO.HIGH)
-                time.sleep(1)  # parpadea 2 veces indicando incio de proceso de eleccion de modo debug o !debug
-                GPIO.output(ledS, GPIO.LOW)
-            print("desea activar modo maze con debug o !debug")
+            print(" Modo Maze-->desea activar modo maze con debug o !debug")
             b1S = GPIO.input(b1)  # lectura de estado de botones
             b2S = GPIO.input(b2)
             time.sleep(0.5)
@@ -191,7 +187,7 @@ try:
                 flag = 0
                 debug=1
             ######TCP INICIALIZACION#####
-                print("Creando Socket")
+                
                 try:
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 except socket.error:
@@ -215,16 +211,16 @@ try:
                 debug =0
                 break
 
-        if enaS == 1:  # una sola ejecucion
-            enaS = 0
-            for i in range(3):  # parpadeo de led de estado 3 veces indica modo maze.
-                GPIO.output(ledS, GPIO.HIGH)
-                time.sleep(1)
-                GPIO.output(ledS, GPIO.LOW)
+        #if enaS == 1:  # una sola ejecucion
+        #    enaS = 0
+        #    for i in range(3):  # parpadeo de led de estado 3 veces indica modo maze.
+        #        GPIO.output(ledS, GPIO.HIGH)
+        #        time.sleep(1)
+        #        GPIO.output(ledS, GPIO.LOW)
                
-
         ######ARDUINO ACTIVACION DE SISTEMA#####
         if ena_Sensor==0:
+            ena_Sensor=1
             for i in range(0, 1):
                 ardS.write(b'R')  # Activacion de los sensores
                 time.sleep(1)
@@ -232,15 +228,18 @@ try:
                 time.sleep(0.5)
                 print("Intentando conectar")
             print("UART establecido")
-        else:
-            ardS.write(b'E')  # Activacion de los sensores
-            time.sleep(1)
-            ardS.write(b's')  # fin de mensaje
-            time.sleep(0.5)
+#        else:
+#            continue
+            #ardS.write(b'E')  # Activacion de los sensores
+            #time.sleep(1)
+            #ardS.write(b's')  # fin de mensaje
+            #time.sleep(0.5)
         ######ARDUINO ACTIVACION DE SISTEMA#####
 
         ###ANALISIS DE DATA PROVENIENETE DEL ARDUINO###
+        
         data_raw = ardS.readline()
+        #print(data_raw)
         if data_raw:
             datastr = data_raw.decode("utf-8")
             dsplit = datastr.split(",")
@@ -269,26 +268,31 @@ try:
                 conn.close()
             time.sleep(2)
 			#os.excel("restart.sh","")
-            sys.exit()
+            sys.exit()  
+
 		###ANALISIS DE DATA PROVENIENETE DEL ARDUINO###	
 		
         ########LOGICA DE MAZE########
         cmd_raw = mazelogic.logic(rad[0], rad[1], rad[2])
-        cmd,rstSensor= cmd_raw.split(",")
+        print(cmd_raw)
+        if cmd_raw != None:
+            cmd,rstSensor1= cmd_raw
+            #print(cmd,rstSensor)
+        
+            if (cmd == 'w'):
+                adelante(1)
+            if (cmd == 'a'):
+                izquierda(1)
+            if (cmd == 'd'):
+                derecha(1)
+            if (cmd == 'q'):
+                spinizq(1)
+            if (cmd == 'e'):
+                spinder(1)
+            else:
+                detenerse()
+            #ena_Sensor=0 
 
-        if (cmd == 'w'):
-            adelante(1)
-        if (cmd == 'a'):
-            izquierda(1)
-        if (cmd == 'd'):
-            derecha(1)
-        if (cmd == 'q'):
-            spinizq(1)
-        if (cmd == 'e'):
-            spinder(1)
-        else:
-            detenerse()
-        ena_Sensor=rstSensor
         ########LOGICA DE MAZE########
 		
 		########ENVIO DE DATOS########
@@ -307,7 +311,7 @@ try:
 				#os.excel("restart.sh","")
                 sys.exit()
 		########ENVIO DE DATOS########
-       
+        
         b1S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente
             print ("Modulos Desactivados")
@@ -319,7 +323,7 @@ try:
             GPIO.cleanup()
 			#os.excel("restart.sh","")
             sys.exit()
-			
+        
  #########################MODO MANUAL###############################################
     while b2F == 2: #Modo manual activo
         print("MODO MANUAL")
