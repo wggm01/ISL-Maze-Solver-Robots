@@ -36,7 +36,7 @@ void setup() {
   // initialize serial:
   Serial.begin(115200);
   //Servos
-  txServo.attach(6);
+  txServo.attach(5);
   txServo.write(5);
   //Servos
   //HC-SR04
@@ -94,6 +94,12 @@ void setup() {
     digitalWrite(LED_BUILTIN, LOW); 
     }}else{Serial.println("Error Gyro");}
   //MPU
+  //Confirmacion de idle
+   for(int i=0; i<4; i++ ){
+     Serial.println('1');
+     delay(200);
+    }
+  //Confirmacion de idle
 }
 
 //--------Funciones--------------//
@@ -113,11 +119,11 @@ void radar(){
   //Serial.print(".");
   Serial.println("\n");
   //CONTROL DE IMU
-uint32_t ts1 = micros();
+//uint32_t ts1 = micros();
 if (flagIMU==1){
 data_IMU();}
-uint32_t ts1 = micros();
-Serial.println(ts2-ts1);
+//uint32_t ts1 = micros();
+//Serial.println(ts2-ts1);
 //CONTROL DE IMU 
   }
  
@@ -195,7 +201,7 @@ if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
             flagIMU = 1; //Activa la transmision de data de imu
             flagRadar = 1;
             servoattach=0;
-            txServo.attach(6);}
+            txServo.attach(5);}
             //Serial.println(cmd1);}//Activa la transmision de data de radar
         else if(cmd1== 'E'){
             flagRadar = 0;
