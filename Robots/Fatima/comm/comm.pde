@@ -20,7 +20,7 @@ void setup() {
   table.addColumn("rotx");
   table.addColumn("roty");
   table.addColumn("rotz");
-  radar = new Client(this, "192.168.25.113", 65441);
+  radar = new Client(this, "192.168.25.113", 6790);
   myServer = new Server(this, 5204);
   //-----------------------------------//
   
