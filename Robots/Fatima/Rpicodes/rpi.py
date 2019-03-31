@@ -10,9 +10,10 @@ GPIO.setmode (GPIO.BCM) #nomenclatura GPIO# no numero de pin
 ledS=19 #led  de estado de espera/eleccion de modo
 b1=25 #boton para confirmacion de conexion con arduino/MODO MANUAL(activacion en lectura de 1)
 b2=16 #boton para modo Maze(activacion en lectura de 1)
-TRIG = 23
-ECHO = 24
-timeout=0
+TRIG = 23#ver cual esta libre
+ECHO = 24#ver cual esta libre
+SERVO= 25 #ver cual esta libre
+timeout=[0]
 ####imu variables###
 RAD_TO_DEG = 57.295779513082320876798154814105 #valor para realizar conversiones de radianes a grados
 #variables para realizar el calculo de angulos de euler
@@ -51,7 +52,11 @@ GPIO.setup(ledS,GPIO.OUT)
 GPIO.setup(b1,GPIO.IN,pull_up_down=GPIO.PUD_DOWN) #la raspberry actuara cuando reciba 3.3v
 GPIO.setup(b2,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 ####Control####
-
+###Servo###
+GPIO.setup(SERVO,GPIO.OUT)
+SRV=GPIO.PWM(SERVO,500)
+SRV.start(0)
+###Servo###
 ####HC-SR04###
 GPIO.setup(TRIG,GPIO.OUT)
 GPIO.setup(ECHO,GPIO.IN)
@@ -129,13 +134,13 @@ def hcsr04():
         echou = echoS*1000000
         if (echou >2915):
             pulse_duration=4678
-            timeout=0
+            timeout[0]=0
             break
         else:
-            timeout=1
+            timeout[0]=1
             break
 
-    if (timeout==1):
+    if (timeout[0]==1):
         while GPIO.input(ECHO) == 1:
         pulse_end = time.time()
 
@@ -145,7 +150,7 @@ def hcsr04():
     return distance
 def dutyCycle(theta):
     dc=1 #ecuacion
-    return dc
+    SRV.ChangeDutyCycle(dc)
 ############Data de sensores####################
 #####Envio de data#####
 def txData(rad[1],rad[2],imu[0],imu[1],imu[2],debug[0]):
@@ -441,6 +446,7 @@ try:
         ######Servo, IMU ADQUISIOCION DE DATOS#####
         for ccw in range(1,180):
             dutyCycle(ccw)
+            time.sleep(0.5)
             rad[0] = "CCW"
             rad[1] = ccw
             rad[2] = hcsr04()
@@ -458,6 +464,7 @@ try:
                 sys.exit()
         for cw in range(180, 1, -1):
             dutyCycle(cw)
+            time.sleep(0.5)
 #            rad[0] = "CW"
 #            rad[1]= cw
 #            rad[2] = hcsr04()
