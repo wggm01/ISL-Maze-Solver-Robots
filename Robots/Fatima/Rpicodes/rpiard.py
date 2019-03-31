@@ -220,26 +220,27 @@ try:
         #        GPIO.output(ledS, GPIO.LOW)
                
         ######ARDUINO ACTIVACION DE SISTEMA#####
-        
-#        if(rst_Sensor==1):
-#            print("reiniciando")
-#            ardS.write(b'E')  # Activacion de los sensores
-#            time.sleep(1)
-#            ardS.write(b's')  # fin de mensaje
-#            time.sleep(0.5)
-#            rst_Sensor=0
-#            time.sleep(1)
-        
-        if ena_Sensor==0:
-            ena_Sensor=1
-            for i in range(0, 1):
-                ardS.write(b'R')  # Activacion de los sensores
-                time.sleep(1)
-                ardS.write(b's')  # fin de mensaje
-                time.sleep(0.5)
-                print("Intentando conectar")
-            print("UART establecido")
-        
+
+        #if (rst_Sensor == 1):
+            #            print("reiniciando")
+            #            ardS.write(b'E')  # Activacion de los sensores
+            #            time.sleep(1)
+            #            ardS.write(b's')  # fin de mensaje
+            #            time.sleep(0.5)
+            #            rst_Sensor=0
+            #            time.sleep(1)
+
+            if ena_Sensor == 0:
+                ena_Sensor = 1
+                for i in range(0, 1):
+                    ardS.write(b'R')  # Activacion de los sensores
+                    time.sleep(1)
+                    ardS.write(b's')  # fin de mensaje
+                    time.sleep(0.5)
+                    print("Intentando conectar")
+                print("UART establecido")
+
+
         ######ARDUINO ACTIVACION DE SISTEMA#####
 
         ###ANALISIS DE DATA PROVENIENETE DEL ARDUINO###
