@@ -105,7 +105,7 @@ void setup() {
 //--------Funciones--------------//
 void radar(){
   
-  for(int i=5;i<=181;i++){  
+  for(int i=5;i<=180;i++){  
   txServo.write(i);
   delay(5);
   distance = calculateDistance();
@@ -115,19 +115,19 @@ void radar(){
   Serial.print(",");
   Serial.print(i);
   Serial.print(","); 
-  Serial.print(distance); 
+  Serial.println(distance); 
   //Serial.print(".");
-  Serial.println("\n");
+  //Serial.println("\n");
   //CONTROL DE IMU
 //uint32_t ts1 = micros();
 if (flagIMU==1){
-data_IMU();}
+data_IMU();}}
 //uint32_t ts1 = micros();
 //Serial.println(ts2-ts1);
 //CONTROL DE IMU 
-  }
+  
  
-  for(int i=181;i>5;i--){  
+  for(int i=180;i>5;i--){  
   txServo.write(i);
   delay(5);
   distance = calculateDistance();
@@ -137,15 +137,14 @@ data_IMU();}
   Serial.print(","); 
   Serial.print(i);
   Serial.print(",");
-  Serial.print(distance);
+  Serial.println(distance);
   //Serial.print(".");
-  Serial.print("\n");
+  //Serial.print("\n");
   //CONTROL DE IMU
-
 if (flagIMU==1){
-data_IMU();}
+data_IMU();}}
 //CONTROL DE IMU 
-  }}
+  }
   
 int calculateDistance(){ 
   digitalWrite(TRIG_PIN,LOW);
@@ -177,7 +176,9 @@ int calculateDistance(){
   //Filtro complementario:
   pitch = 0.97402*gpitch + accpitch*0.02598;
   roll = 0.97402*groll + accroll*0.02598;
-  yaw= gyaw; 
+  yaw= gyaw;
+  Serial.print("I");
+  Serial.print(","); 
   Serial.print(pitch);
   Serial.print(",");
   Serial.print(roll);
