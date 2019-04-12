@@ -23,13 +23,23 @@ int servoattach=1;
 //Servos
 Servo txServo;
 //Servos
-
 //HC-SR04
 float distance; //crea la variable "distancia"
 float tiempo; //crea la variable tiempo (como float)
 #define TRIG_PIN A1
 #define ECHO_PIN A0
 //HC-SR04
+//LOGICA DE LABERINTO
+int regC[]={0,0,0,0};//Incrementador
+float pnt0[40];
+float pnt1[40];
+float pnt2[40];
+float pnt3[40];
+float average[]={0,0,0,0};
+char movlog[]={0,0,0,0};
+int idle[]={0,0};
+char rmov[]={0,0,0,0};
+//LOGICA DE LABERINTO
 
 void setup() {
    pinMode(LED_BUILTIN, OUTPUT); //Indicador de proceso de calibracion
@@ -102,6 +112,61 @@ void setup() {
   //Confirmacion de idle
 }
 
+char logic(char dire, int theta, float r){
+ if(dire=="CCW"){
+  if(theta<46){
+    pnt0[regC[0]]=r; //Recolecta las distancias
+    regC[0] +=1;
+    if(theta == 45){
+      average[0] += pnt0[regC[0]]; //Suma las distancias guardas en el arreglo pnt0
+      average[0]= average[0]/sizeof(pnt0);
+      if (average[0]<40){movlog[0]='1';regC[0]=0;} //Reinicio de contador y almacenamiento de data para movimiento
+      else{movlog[0]='0';regC[0]=0;}}}  //PRIMERA SECCION DE BARRIDO
+      
+  if(theta > 45 && theta < 91){
+    pnt1[regC[1]]=r; //Recolecta las distancias
+    regC[1] +=1;
+    if(theta == 90){
+      average[1] += pnt1[regC[1]]; //Suma las distancias guardas en el arreglo pnt1
+      average[1]= average[1]/sizeof(pnt1);
+      if (average[1]<40){movlog[1]='1';regC[1]=0;} //Reinicio de contador y almacenamiento de data para movimiento
+      else{movlog[1]='0';regC[1]=0;}}}  //SEGUNDA SECCION DE BARRIDO
+
+  if(theta > 90 && theta < 136){
+    pnt2[regC[2]]=r; //Recolecta las distancias
+    regC[2] +=1;
+    if(theta == 135){
+      average[2] += pnt2[regC[2]]; //Suma las distancias guardas en el arreglo pnt1
+      average[2]= average[2]/sizeof(pnt2);
+      if (average[2]<40){movlog[2]='1';regC[2]=0;} //Reinicio de contador y almacenamiento de data para movimiento
+      else{movlog[2]='0';regC[2]=0;}}}  //TERCERA SECCION DE BARRIDO
+
+  if(theta > 135 && theta < 181){
+    pnt3[regC[3]]=r; //Recolecta las distancias
+    regC[3] +=1;
+    if(theta == 180){
+      average[3] += pnt3[regC[3]]; //Suma las distancias guardas en el arreglo pnt1
+      average[3]= average[3]/sizeof(pnt3);
+      if (average[3]<40){movlog[3]='1';regC[3]=0;} //Reinicio de contador y almacenamiento de data para movimiento
+      else{movlog[3]='0';regC[3]=0;}}}  //CUARTA SECCION DE BARRIDO
+
+  if(theta == 180){
+    rmov[0] = movlog[0] + movlog[1] + movlog[2] + movlog[3];
+    if (rmov[0] == "1001"){      
+     return 'w';}
+    if (rmov[0] == "0001"){      
+     return 'a';}
+    if (rmov[0] == "1000"){      
+     return 'd';}
+    if (rmov[0] == "1111"){      
+     return 'q';}
+    else{return 'x';}
+ }//theta == 180
+ else{return 'x';} 
+ }//if(dire=="CCW")
+ }//char logic
+
+
 //--------Funciones--------------//
 void radar(){
   
@@ -109,6 +174,10 @@ void radar(){
   txServo.write(i);
   delay(5);
   distance = calculateDistance();
+  char cmd = logic("CCW",i,distance);
+  Serial.print("cmd");
+  Serial.print(",");
+  Serial.println(cmd);
   Serial.print("R");
   Serial.print(",");
   Serial.print("CCW"); 
@@ -116,8 +185,7 @@ void radar(){
   Serial.print(i);
   Serial.print(","); 
   Serial.println(distance); 
-  //Serial.print(".");
-  //Serial.println("\n");
+  
   //CONTROL DE IMU
 //uint32_t ts1 = micros();
 if (flagIMU==1){
@@ -138,8 +206,6 @@ data_IMU();}}
   Serial.print(i);
   Serial.print(",");
   Serial.println(distance);
-  //Serial.print(".");
-  //Serial.print("\n");
   //CONTROL DE IMU
 if (flagIMU==1){
 data_IMU();}}

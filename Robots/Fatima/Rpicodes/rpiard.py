@@ -256,56 +256,21 @@ try:
                     cmd_raw = mazelogic.logic(rad[0], rad[1], rad[2])
                     cmd,ena_Sensor1= cmd_raw
                     #######Movimiento de los motores########
-                    print(cmd)
-                    if (ena_Sensor1==0):
-                        if (cmd == 'w'):
-#                            print("reiniciando")
-#                            ardS.write(b'E')  # Activacion de los sensores
-#                            time.sleep(0.080)
-#                            ardS.write(b's')  # fin de mensaje
-#                            ena_Sensor[0]=0
-#                            rst_Sensor[0]=1
-                            adelante(1)
-#                            time.sleep(0.5)
-                        if (cmd == 'a'):
-#                            print("reiniciando")
-#                            ardS.write(b'E')  # Activacion de los sensores
-#                            time.sleep(0.080)
-#                            ardS.write(b's')  # fin de mensaje
-#                            ena_Sensor[0]=0
-#                            rst_Sensor[0]=1
-                            izquierda(1)
-#                            time.sleep(0.5)
-                        if (cmd == 'd'):
-#                            print("reiniciando")
-#                           ardS.write(b'E')  # Activacion de los sensores
-#                            time.sleep(0.080)
-#                            ardS.write(b's')  # fin de mensaje
-#                            ena_Sensor[0]=0
-#                            rst_Sensor[0]=1
-                            derecha(1)
-#                            time.sleep(0.5)
-                        if (cmd == 'q'):
-#                            print("reiniciando")
-#                            ardS.write(b'E')  # Activacion de los sensores
-#                            time.sleep(0.080)
-#                            ardS.write(b's')  # fin de mensaje
-#                            ena_Sensor[0]=0
-#                            rst_Sensor[0]=1
-                            spinizq(1)
-#                            time.sleep(0.5)
-                        if (cmd == 'e'):
-#                            print("reiniciando")
-#                            ardS.write(b'E')  # Activacion de los sensores
-#                            time.sleep(0.080)
-#                            ardS.write(b's')  # fin de mensaje
-#                            ena_Sensor[0]=0
-#                            rst_Sensor[0]=1
-                            spinder(1)
-#                            time.sleep(0.5)
-                    if(ena_Sensor1==1):
-                        detenerse()
-                        
+			if (dsplit[0]=="cmd"):
+				cmd=dsplit[1]
+                print(cmd)
+                if (cmd == 'w'):                         
+					adelante(1)
+                if (cmd == 'a'):  
+                    izquierda(1)        
+                if (cmd == 'd'):        
+                    derecha(1)        
+                if (cmd == 'q'):        
+                     spinizq(1)       
+                if (cmd == 'e'):        
+                    spinder(1)              
+                else:
+                    detenerse()      
                 continue
         else:
             print("no data")
