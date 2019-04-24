@@ -27,6 +27,14 @@ for data in range(1,176): #En lugar de 41 iria el tamano del vector que almacena
     #print(deg[data],d[data])
 
 #Calculo de regresion
+<<<<<<< HEAD
+slope, intercept, r_value, p_value, std_err = stats.linregress(deg,d)
+print("pendiente:",slope,"corte en y",intercept,"r^2",(r_value**2)*100)
+theta_test=np.linspace(5,45)
+y = slope*theta_test+intercept
+#plt.plot(y, theta_test, '-r')
+plt.plot(deg, d)
+=======
 #slope, intercept, r_value, p_value, std_err = stats.linregress(deg,d)
 #print("pendiente:",slope,"corte en y",intercept,"r^2",(r_value**2)*100)
 #theta_test=np.linspace(5,45)
@@ -34,6 +42,7 @@ for data in range(1,176): #En lugar de 41 iria el tamano del vector que almacena
 #plt.plot(y, theta_test, '-r')
 #plt.polar(deg, d, 'ro')
 plt.scatter(x, y)
+>>>>>>> 6e6742d98a8b919679303e9984fffdc303dfa935
 plt.title('Regesion Lineal')
 plt.xlabel('no se como se define', color='#1C2833')
 plt.ylabel('Distancia', color='#1C2833')
