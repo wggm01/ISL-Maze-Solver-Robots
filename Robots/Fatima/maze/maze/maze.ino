@@ -33,7 +33,7 @@ float tiempo; //crea la variable tiempo (como float)
 void setup() {
    pinMode(LED_BUILTIN, OUTPUT); //Indicador de proceso de calibracion
   // initialize serial:
-  Serial.begin(115200);
+  Serial.begin(9600);
   //Servos
   txServo.attach(5);
   txServo.write(5);
