@@ -5,13 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 #array encargado de almacenar data
-deg=[0]*353
-d=[0]*353
-x=[0]*353
-y=[0]*353
+deg=[0]*176
+d=[0]*176
+x=[0]*176
+y=[0]*176
 i=0
 #cargar documento
-wb= load_workbook('old/reg0-180.xlsx')
+wb= load_workbook('test4/reg0-180.xlsx')
 sheet= wb['reg0-45']
 #iteracion en las celdas
 for data in range(1,176): #En lugar de 41 iria el tamano del vector que almacena r
