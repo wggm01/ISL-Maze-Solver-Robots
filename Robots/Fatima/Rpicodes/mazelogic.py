@@ -25,9 +25,9 @@ rmov=[0,0] #redundancia
 def logic(dire,theta,r):
     #print (dire,theta,r)
     #dire=str(dire)
-    
+
     if dire == "CCW":
-        
+
         if (theta < 46): #check
             # cantidad de puntos [para realizar el promedio]
             pnt0[regC[0]] = r
@@ -111,47 +111,47 @@ def logic(dire,theta,r):
             rmov[0] = str(movlog[0]) + str(movlog[1]) + str(movlog[2]) + str(movlog[3])
             #print(rmov[0])
             idle[0] = 1  # identificador de que se completo el analisis en ccw
-    
-            
+
+
             if idle[0] == 1:
                 if rmov[0] == "1001":
                 # avanzar recto
                     idle[0] = 0
                     #idle[1] = 0
-               
+
                     return ('w',0)
 
                 if rmov[0] == "0001":
                     # avanzar izquierda 90 grados
                     idle[0] = 0
                     #idle[1] = 0
-               
+
                     return ('a',0)
 
                 if rmov[0] == "1000":
                     # avanzar derecha 90 grados
                     idle[0] = 0
                     #idle[1] = 0
-            
+
                     return ('d',0)
 
                 if rmov[0] == "1111":
                     # rotar 180
                     idle[0] = 0
                     #idle[1] = 0
-                
+
                     return ('q',0)
 
                 else:
                     return ('y', 1)
                     print("mapeando")
-    
-    
+
+
     return ('x', 1)
-   
+
 
 """
-############################################################                        
+############################################################
     elif dire == "CW":
         if (theta > 170 and theta < 136):  # check
             # cantidad de puntos [para realizar el promedio]
@@ -227,4 +227,3 @@ def logic(dire,theta,r):
         print(rmov[0] + rmov[1])
 """
 ######################################
-
