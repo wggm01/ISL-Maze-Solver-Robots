@@ -18,10 +18,19 @@ boolean stringComplete = false;  // whether the string is complete
 int flagSerial = 1; //control de envio de instrucciones
 int flagIMU = 0;
 int flagRadar = 0;
-int servoattach=1;
 //Serial
 //Servos
 Servo txServo;
+int minPosX = 0; //Extremos que puede alcanzar el servo
+int maxPosX = 180;
+int lastPosX = 0; //Memoria de posicion anterior en x
+int loopCount = 0; //Cuenta cuantos barridos se han hecho
+int radius = 0; //guarda la distancia tomada en ese punto
+int lastRadius = 0;//guarda la distancia pasada
+boolean scanDirection = true; // Indica la direccion del servo
+int scanIncrement = 1; //Suma un grado para el siguiente movimiento del servo
+int posX = (minPosX);//Posicion incial del servo
+int servoattach=1;
 //Servos
 //HC-SR04
 float distance; //crea la variable "distancia"
@@ -33,19 +42,19 @@ float tiempo; //crea la variable tiempo (como float)
 void setup() {
    pinMode(LED_BUILTIN, OUTPUT); //Indicador de proceso de calibracion
   // initialize serial:
-  Serial.begin(9600);
+  Serial.begin(115200);
   //Servos
   txServo.attach(5);
   txServo.write(5);
   //Servos
   //HC-SR04
-  pinMode(TRIG_PIN, OUTPUT); 
-  pinMode(ECHO_PIN, INPUT); 
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
   //HC-SR04
   //MPU
  while(!Serial) {Serial.println("Problemas con IMU");}
 
-  // start communication with IMU 
+  // start communication with IMU
   status = IMU.begin();
    if (status < 0) {
     Serial.println("IMU initialization unsuccessful");
@@ -54,7 +63,7 @@ void setup() {
     Serial.println(status);
     while(1) {}
   }
-  // setting the accelerometer full scale range to +/-8G 
+  // setting the accelerometer full scale range to +/-8G
   IMU.setAccelRange(MPU9250::ACCEL_RANGE_2G);
   // setting the gyroscope full scale range to +/-500 deg/s
   IMU.setGyroRange(MPU9250::GYRO_RANGE_250DPS);
@@ -62,7 +71,7 @@ void setup() {
   IMU.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ);
   // setting SRD to 19 for a 50 Hz update rate (cada 20 ms)
   IMU.setSrd(19);//frecuencia de actualizacion de datos del imu (magnetometroData Output Rate = 8Hz)
- 
+
   //Calibracion de Gyro
   int gC = IMU.calibrateGyro();
   if (gC>0){
@@ -70,9 +79,9 @@ void setup() {
    for(int i=0; i<2; i++ ){
     digitalWrite(LED_BUILTIN, HIGH);
     delay(500);
-    digitalWrite(LED_BUILTIN, LOW); 
+    digitalWrite(LED_BUILTIN, LOW);
     }}else{Serial.println("Error Gyro");}
-    
+
  //Calibracion de Acce
  int aC =IMU.calibrateAccel();
   if (aC>0){
@@ -80,9 +89,9 @@ void setup() {
    for(int i=0; i<3; i++ ){
     digitalWrite(LED_BUILTIN, HIGH);
     delay(500);
-    digitalWrite(LED_BUILTIN, LOW); 
+    digitalWrite(LED_BUILTIN, LOW);
     }}else{Serial.println("Error Gyro");}
-  Serial.println("Mueva ligeramente el dispositivo");   
+  Serial.println("Mueva ligeramente el dispositivo");
 //Calibracion magnetometro
  int mC =IMU.calibrateAccel();
  if (mC>0){
@@ -90,7 +99,7 @@ void setup() {
    for(int i=0; i<4; i++ ){
     digitalWrite(LED_BUILTIN, HIGH);
     delay(500);
-    digitalWrite(LED_BUILTIN, LOW); 
+    digitalWrite(LED_BUILTIN, LOW);
     }}else{Serial.println("Error Gyro");}
   //MPU
   //Confirmacion de idle
@@ -101,49 +110,55 @@ void setup() {
   //Confirmacion de idle
 }
 
-
 //--------Funciones--------------//
+bool moveServos()
+{
+  bool moved = false;
+  static int lastPosX;
+  int delta = 0;
+  if (posX != lastPosX) {
+    servoX.write(posX);
+    lastPosX = posX;
+    moved = true;}
+  delay(30);
+  return moved;
+}
+
 void radar(){
-  
-  for(int i=5;i<=180;i++){  
-  txServo.write(i);
-  delay(5);
-  distance = calculateDistance();
-  Serial.print("R");
-  Serial.print(",");
-  Serial.print("CCW"); 
-  Serial.print(",");
-  Serial.print(i);
-  Serial.print(","); 
-  Serial.println(distance); 
-  
-  //CONTROL DE IMU
-//uint32_t ts1 = micros();
-if (flagIMU==1){
-data_IMU();}}
-//uint32_t ts1 = micros();
-//Serial.println(ts2-ts1);
-//CONTROL DE IMU 
-  
- 
-  for(int i=180;i>5;i--){  
-  txServo.write(i);
-  delay(5);
-  distance = calculateDistance();
-  Serial.print("R");
-  Serial.print(",");
-  Serial.print("CW"); 
-  Serial.print(","); 
-  Serial.print(i);
-  Serial.print(",");
-  Serial.println(distance);
-  //CONTROL DE IMU
-if (flagIMU==1){
-data_IMU();}}
-//CONTROL DE IMU 
-  }
-  
-int calculateDistance(){ 
+  //for(int i=5;i<=180;i++){
+  if (scanDirection) {
+    posX += scanIncrement;} //ccw
+  else {
+    posX -= scanIncrement;}//cw
+
+  if (posX > maxPosX || posX < minPosX) {
+  	  // Cuando llega a uno de los dos limites cambia la direccion
+      scanDirection = !scanDirection;}
+
+  	posX = min(max(posX, minPosX), maxPosX);//Evita falla en la eleccion de grado
+
+  	bool moved = moveServos();
+
+    if (moved) {
+    //Mandar distancia por UART cada vez que se mueve el servo
+    distance = calculateDistance();
+    float rectx,recty;
+    rectx = distance*cos(posX);
+    recty = distance*sin(posX);
+    Serial.print("R");
+    Serial.print(",");
+    if (scanDirection) {
+      Serial.print("CCW");}
+    else{Serial.print("CW");}
+    Serial.print(",");
+    Serial.print(rectx);
+    Serial.print(",");
+    Serial.println(recty);
+    data_IMU();
+    //Mandar imu por UART cada vez que se mueve el servo
+}
+
+int calculateDistance(){
   digitalWrite(TRIG_PIN,LOW);
   delayMicroseconds(5);
   digitalWrite(TRIG_PIN, HIGH);
@@ -175,13 +190,13 @@ int calculateDistance(){
   roll = 0.97402*groll + accroll*0.02598;
   yaw= gyaw;
   Serial.print("I");
-  Serial.print(","); 
+  Serial.print(",");
   Serial.print(pitch);
   Serial.print(",");
   Serial.print(roll);
   Serial.print(",");
   Serial.println(yaw);
-} 
+}
 //--------Funciones--------------//
 
 void loop() {
@@ -195,16 +210,14 @@ if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
        for(int i=0 ; i<4 ; i++){
       Serial.println(cmd1);}}//Mensaje de retorno
       else{
-        if (cmd1== 'R'){ 
-            flagIMU = 1; //Activa la transmision de data de imu
+        if (cmd1== 'R'){
             flagRadar = 1;
             servoattach=0;
             txServo.attach(5);}
             //Serial.println(cmd1);}//Activa la transmision de data de radar
         else if(cmd1== 'E'){
             flagRadar = 0;
-            flagIMU =0;//todo se desactiva
-            servoattach=0;
+            servoattach=1;
             flagSerial=0;}
             //Serial.println(cmd1);}
             }
@@ -213,12 +226,9 @@ if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
       stringComplete = false;}}
 
 //CONTROL DE RADAR
-if(flagRadar == 1){ 
+if(flagRadar == 1){
 radar();
   }}
-
-
-
 
 void serialEvent() {
   while (Serial.available()) {
@@ -230,6 +240,3 @@ void serialEvent() {
     j = j+1;
     if (inChar == 's') {
       stringComplete = true;}}}
-
-
-  
