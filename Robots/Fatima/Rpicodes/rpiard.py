@@ -167,6 +167,7 @@ def rpiard(logic):
                 if(!logic):
                     with open ("reg0-180.csv", "a") as pos:
                         pos.write("%s, %s \n" % ( theta,r))
+                    txData()#envio de data para visulazacion
 ####adquisiscion de data####
 
 
@@ -271,14 +272,12 @@ try:
             ardS.write(b's')  # fin de mensaje
             print("UART establecido")
         ######ARDUINO ACTIVACION DE SISTEMA#####
-
         ###Adquisicion de data y procesamiento###
         rpiard(1)
         ###Adquisicion de data y procesamiento###
-
             if (debug):
-                print("Enviado")
                 txData()
+                print("Enviado")
         else:
             print("no data")
             print('No se pudo enviar la informacion')
@@ -309,6 +308,7 @@ try:
         print("MODO MANUAL")
         if ena2S == 1:
             ena2S=0
+            print("Modo manual Activo")
             for i in range(5): #parpadeo 5 veces modo manual
                 GPIO.output(ledS, GPIO.HIGH)
                 time.sleep(1)  # parpadeo indica modo manual
@@ -326,10 +326,13 @@ try:
         if (ena_Sensor == 0):
             ena_Sensor = 1
             ardS.write(b'R')  # Activacion de los sensores
-            time.sleep(0.080)
             ardS.write(b's')  # fin de mensaje
             print("UART establecido")
+            time.sleep(0.080)
         ######ARDUINO ACTIVACION DE SISTEMA#####
+        ######ALMACENAR DATA PARA MODELADO######
+        rpiard(0)
+        ######ALMACENAR DATA PARA MODELADO######
         ###control manual###
         data = conn.recv(1024)
         if not data:
@@ -361,12 +364,9 @@ try:
             GPIO.cleanup()
             #os.excel("restart.sh","")
             sys.exit()
-
         if (cmd == 'z'):
             detenerse() #se enviara una z indicando que el boton ha sido soltado.
         ###control manual###
-
-        print("Modo manual Activo")
 
         b1S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente

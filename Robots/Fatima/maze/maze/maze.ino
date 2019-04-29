@@ -142,18 +142,18 @@ void radar(){
     if (moved) {
     //Mandar distancia por UART cada vez que se mueve el servo
     distance = calculateDistance();
-    float rectx,recty;
-    rectx = distance*cos(posX);
-    recty = distance*sin(posX);
+    //float rectx,recty;
+    //rectx = distance*cos(posX);
+    //recty = distance*sin(posX);
     Serial.print("R");
     Serial.print(",");
     if (scanDirection) {
       Serial.print("CCW");}
     else{Serial.print("CW");}
     Serial.print(",");
-    Serial.print(rectx);
+    Serial.print(posX);
     Serial.print(",");
-    Serial.println(recty);
+    Serial.println(distance);
     data_IMU();
     //Mandar imu por UART cada vez que se mueve el servo
 }
