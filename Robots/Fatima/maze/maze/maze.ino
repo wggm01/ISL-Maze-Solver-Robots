@@ -117,45 +117,11 @@ bool moveServos()
   static int lastPosX;
   int delta = 0;
   if (posX != lastPosX) {
-    servoX.write(posX);
+    txServo.write(posX);
     lastPosX = posX;
     moved = true;}
   delay(30);
   return moved;
-}
-
-void radar(){
-  //for(int i=5;i<=180;i++){
-  if (scanDirection) {
-    posX += scanIncrement;} //ccw
-  else {
-    posX -= scanIncrement;}//cw
-
-  if (posX > maxPosX || posX < minPosX) {
-  	  // Cuando llega a uno de los dos limites cambia la direccion
-      scanDirection = !scanDirection;}
-
-  	posX = min(max(posX, minPosX), maxPosX);//Evita falla en la eleccion de grado
-
-  	bool moved = moveServos();
-
-    if (moved) {
-    //Mandar distancia por UART cada vez que se mueve el servo
-    distance = calculateDistance();
-    float rectx,recty;
-    rectx = distance*cos(posX);
-    recty = distance*sin(posX);
-    Serial.print("R");
-    Serial.print(",");
-    if (scanDirection) {
-      Serial.print("CCW");}
-    else{Serial.print("CW");}
-    Serial.print(",");
-    Serial.print(rectx);
-    Serial.print(",");
-    Serial.println(recty);
-    data_IMU();
-    //Mandar imu por UART cada vez que se mueve el servo
 }
 
 int calculateDistance(){
@@ -168,7 +134,7 @@ int calculateDistance(){
   if (distancep < 1){distancep=80;}
   return distancep;}
 
-  void data_IMU(){
+    void data_IMU(){
   IMU.readSensor();
   // display the data
   gyroRatex=IMU.getGyroX_rads();
@@ -197,6 +163,36 @@ int calculateDistance(){
   Serial.print(",");
   Serial.println(yaw);
 }
+
+void radar(){
+  //for(int i=5;i<=180;i++){
+  if (scanDirection) {
+    posX += scanIncrement;} //ccw
+  else {
+    posX -= scanIncrement;}//cw
+  if (posX > maxPosX || posX < minPosX) {
+  	  // Cuando llega a uno de los dos limites cambia la direccion
+      scanDirection = !scanDirection;}
+  	posX = min(max(posX, minPosX), maxPosX);//Evita falla en la eleccion de grado
+  	bool moved = moveServos();
+    if (moved) {
+    //Mandar distancia por UART cada vez que se mueve el servo
+    distance = calculateDistance();
+    float rectx,recty;
+    rectx = distance*cos(posX);
+    recty = distance*sin(posX);
+    Serial.print("R");
+    Serial.print(",");
+    if (scanDirection) {
+      Serial.print("CCW");}
+    else{Serial.print("CW");}
+    Serial.print(",");
+    Serial.print(rectx);
+    Serial.print(",");
+    Serial.println(recty);
+    data_IMU();
+    //Mandar imu por UART cada vez que se mueve el servo
+}}
 //--------Funciones--------------//
 
 void loop() {
@@ -218,6 +214,7 @@ if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
         else if(cmd1== 'E'){
             flagRadar = 0;
             servoattach=1;
+            posX=0;
             flagSerial=0;}
             //Serial.println(cmd1);}
             }
