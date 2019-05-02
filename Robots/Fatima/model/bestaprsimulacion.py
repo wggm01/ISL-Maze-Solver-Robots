@@ -7,7 +7,7 @@ wb= load_workbook('reg0-180.xlsx')
 sheet= wb['reg0-45']
 data=0
 HOST= '192.168.0.247'
-PORT= 6790 # Revisar contra el cliente
+PORT= 6792 # Revisar contra el cliente
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(3)  # Maximo tres clientes
