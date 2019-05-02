@@ -5,7 +5,7 @@ import socket
 from time import sleep as delay
 
 #Conexion por TCP
-server_address = ('192.168.0.247',6790)
+server_address = ('192.168.0.247',6792)
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect(server_address)
 
@@ -38,43 +38,25 @@ def animate(i):
     if(deg<45):
         rectx=distance*math.cos(math.radians(deg))
         recty=distance*math.sin(math.radians(deg))
-        ax1.set_xlim([-30,30])
-        ax1.set_ylim([0,30])
         ax1.scatter(rectx,recty,color='black')
-        ax1.set_xlabel('Distancia horizontal con respecto al sensor')
-        ax1.set_ylabel('Distancia vertical')
-
-
+      
     if(deg > 45 and deg < 91):
         rectx=distance*math.cos(math.radians(deg))
         recty=distance*math.sin(math.radians(deg))
-        ax1.set_xlim([-30,30])
-        ax1.set_ylim([0,30])
         ax1.scatter(rectx,recty,color='yellow')
-        ax1.set_xlabel('Distancia horizontal con respecto al sensor')
-        ax1.set_ylabel('Distancia vertical')
-
+       
 
     if(deg > 90 and deg < 136):
         rectx=distance*math.cos(math.radians(deg))
         recty=distance*math.sin(math.radians(deg))
-        ax1.set_xlim([-30,30])
-        ax1.set_ylim([0,30])
         ax1.scatter(rectx,recty,color='cyan')
-        ax1.set_xlabel('Distancia horizontal con respecto al sensor')
-        ax1.set_ylabel('Distancia vertical')
-
+     
 
     if(deg > 135 and deg < 181):
         rectx=distance*math.cos(math.radians(deg))
         recty=distance*math.sin(math.radians(deg))
-        ax1.clear()
-        ax1.set_xlim([-30,30])
-        ax1.set_ylim([0,30])
         ax1.scatter(rectx,recty,color='purple')
-        ax1.set_title('reg0-45')
-        ax1.set_xlabel('Distancia horizontal con respecto al sensor')
-        ax1.set_ylabel('Distancia vertical')
+       
     if(deg==180):
         ax1.clear()
 
