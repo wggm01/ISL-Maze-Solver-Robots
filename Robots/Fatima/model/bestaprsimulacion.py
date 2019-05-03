@@ -1,13 +1,14 @@
 import openpyxl
 from openpyxl import load_workbook
 import socket
+from time import sleep as delay
 #array encargado de almacenar data
 #cargar documento
 wb= load_workbook('reg0-180.xlsx')
 sheet= wb['reg0-45']
 data=0
 HOST= '192.168.0.247'
-PORT= 6792 # Revisar contra el cliente
+PORT= 6793 # Revisar contra el cliente
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(3)  # Maximo tres clientes
@@ -34,4 +35,5 @@ while(True): #En lugar de 41 iria el tamano del vector que almacena r
     except socket.error:
         print ('No se pudo enviar la informacion')
         conn.close()
+    delay(0.0001)
     
