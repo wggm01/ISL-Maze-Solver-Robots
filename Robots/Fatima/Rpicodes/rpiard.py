@@ -124,11 +124,16 @@ def spinder(mode):
 
 #######Envio de data usando TCP########
 def txData ():
-    data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
-    #data = str(rad[1])+','+str(rad[2])+','+'s'
+    #data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
+    data_to = str(rad[1])+','+str(rad[2])+'s'
+    data_toSend=data_to.encode('utf-8')
+    packet_len=len(data_toSend)
+    diff=8-packet_len
+    packet_adj=data_to + 's'*diff
+    packet_toSend=packet_adj.encode('utf-8')
     #print(data)
     try:
-        conn.sendall(data)
+        conn.sendall(packet_toSend)
     except socket.error:
         print ('No se pudo enviar la informacion')
         print ("Modulos Desactivados")
@@ -152,7 +157,7 @@ def rpiard(logic):
             imu[0] = float(dsplit[1])
             imu[1] = float(dsplit[2])
             imu[2] = float(dsplit[3])
-            
+
         if (dsplit[0] == 'R'):
             if(dsplit[1]=="CCW"):
                 rad[0] = dsplit[1]
@@ -166,6 +171,8 @@ def rpiard(logic):
                     #cmd_raw = mazelogic.logic(rad[0], rad[1], rad[2])
                     #cmd,ena_Sensor1= cmd_raw
                     #Aqui ira la toma de decision
+                    if(debug):
+                        txData()
                     print(rad[0], rad[1], rad[2])
                 if(logic==0):
                     txData()
@@ -207,19 +214,19 @@ try:
     b1S=GPIO.input(b1) #ALMACENO EL ESTADO inicial
     b2S=GPIO.input(b2) #ALMACENO EL ESTADO inicial
 
-    if (b1S==1 and b2S == 1): #SIN  PRESIONAR ESTA EN ALTO
+    if (b1S==1 and b2S == 1): #SIN  PRESIONAR ESTA EN BAJO
         print("No puede presionar ambos botones a la vez")
     else:
         while (b1S==0 and b2S == 0): #permanecera en el loop hasta que se presione un boton
             print("elija el modo")
             b1S=GPIO.input(b1) #ALMACENO EL ESTADO ACTUAL
-            time.sleep(0.5)
+            time.sleep(0.25)
             if (b1S == 1):
                 b1F=1 #bandera para modo maze
                 #print(b1F)
                 break
             b2S=GPIO.input(b2) #ALMACENO EL ESTADO ACTUAL
-            time.sleep(0.5)
+            time.sleep(0.25)
             if (b2S==1):
                 b2F=2 #bandera para modo manual
                 #print(b2F)
@@ -232,7 +239,7 @@ try:
             print(" Modo Maze-->desea activar modo maze con debug o !debug")
             b1S = GPIO.input(b1)  # lectura de estado de botones
             b2S = GPIO.input(b2)
-            time.sleep(0.5)
+            time.sleep(0.25)
             if (b1S == 1):  # debug
                 flag = 0
                 debug=1
@@ -250,7 +257,7 @@ try:
 
                 s.bind((HOST, PORT))
                 s.listen(3)  # Maximo tres clientes
-                print("Creando Socket")
+                print("Creando Socket_Modo_Mze")
                 conn, addr = s.accept() #se queda esperando un cliente
                 print('Connected by', addr)
             ######TCP INICIALIZACION#####
@@ -280,14 +287,12 @@ try:
         rpiard(1)
         ###Adquisicion de data y procesamiento###
 
-        if (debug):
-            print("Enviado")
-            txData()
-        
         b1S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente
             print ("Modulos Desactivados")
             if (debug):
+                conn.sendall('0') #indica que el procesdo de graficado debe acabar
+                time.slee(1)
                 conn.close()
             ardS.write(b"E") #Desactiva los sensores
             ardS.write(b"s")
@@ -310,7 +315,7 @@ try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.bind((HOST, PORT))
             s.listen(5)
-            print("Creando Socket")
+            print("Creando Socket_modo_Manual")
             conn, addr = s.accept()
             print('Connected by', addr) #se queda esperando un cliente
             ####conexion TCP ######
@@ -332,7 +337,6 @@ try:
 #            GPIO.cleanup()
             #os.excel("restart.sh","")
 #            sys.exit()
-
         # ANALISIS DE DATA
 #        cmdRaw = data.partition('s') # Separa la trama al encontrar el caracter s (cmd,s,'')
 #        cmd= cmdRaw[0] # (cmd)
@@ -362,6 +366,8 @@ try:
         b1S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente
             print ("Modulos Desactivados")
+            conn.sendall('0') #indica que el procesdo de graficado debe acabar
+            time.sleep(1)
             conn.close()
             ardS.write(b"E") #Desactiva los sensores
             ardS.write(b"s")
@@ -374,6 +380,8 @@ try:
 except KeyboardInterrupt :
     print ("Modulos Desactivados")
     if (debug):
+        conn.sendall(packet_toSend)
+        time.slee(1)
         conn.close()
     ardS.write(b"E")
     ardS.write(b"s")
