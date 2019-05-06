@@ -7,7 +7,7 @@ from time import sleep as delay
 wb= load_workbook('reg0-180.xlsx')
 sheet= wb['reg0-45']
 data=0
-increment =0 
+increment =0
 HOST= '192.168.0.247'
 PORT= 6793 # Revisar contra el cliente
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,8 +23,9 @@ while(True): #En lugar de 41 iria el tamano del vector que almacena r
         data=1
         increment +=1
         if(increment == 2):
-            print('Bye Bye')
-            conn.sendall("0")
+            clearsys='0'
+            enco=clearsys.encode('utf-8')
+            conn.sendall(enco)
             break
     theta= sheet.cell(row=data, column=1).value
     r= sheet.cell(row=data, column=2).value
@@ -41,4 +42,3 @@ while(True): #En lugar de 41 iria el tamano del vector que almacena r
         print ('No se pudo enviar la informacion')
         conn.close()
     delay(0.0001)
-    

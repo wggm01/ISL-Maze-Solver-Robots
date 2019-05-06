@@ -33,7 +33,7 @@ class DynamicPlotter():
         data = s.recv(8)
         #print(data)
         if data == '0':
-            self.radar.Clear()
+            self.app.closeAllWindows()
         data_decode=data.decode("utf-8")
         data_str=str(data_decode)
         packet_slice=data_str.partition('s')
@@ -43,23 +43,18 @@ class DynamicPlotter():
         if(deg<181):
             rectx=distance*math.cos(math.radians(deg))
             recty=distance*math.sin(math.radians(deg))
-        
+
             self.databufferx.append(rectx)
             self.databuffery.append(recty)
-        
+
             self.x[:] = self.databufferx
             self.y[:] = self.databuffery
-            
+
             self.radar.setData(self.x, self.y,pen=None,symbol='o')
         if(deg==179):
             self.databufferx = collections.deque([0.0]*self._bufsize, self._bufsize)
             self.databuffery = collections.deque([0.0]*self._bufsize, self._bufsize)
-            #self.clearx = np.zeros(self._bufsize, dtype=np.float) #esto se mantiene
-            #self.cleary = np.zeros(self._bufsize, dtype=np.float)
-            #self.radar.setData(self.clearx, self.cleary,pen=None)
-            #self.radar.Clear() Cerrar programa
-        
-          
+
         self.app.processEvents()
 
     def run(self):
