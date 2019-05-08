@@ -31,7 +31,7 @@ class DynamicPlotter():
 
     def updateplot(self):
         data = s.recv(8)
-        #print(data)
+        print(data)
         if data == '0':
             self.app.closeAllWindows()
         data_decode=data.decode("utf-8")
@@ -62,7 +62,7 @@ class DynamicPlotter():
 
 if __name__ == '__main__':
 
-    server_address = ('192.168.0.247',6793)
+    server_address = ('192.168.25.104',6793)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(server_address)
     m = DynamicPlotter(sampleinterval=0.0001, timewindow=0.0351) #intervalo en segundos
