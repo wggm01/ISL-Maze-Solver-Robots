@@ -131,7 +131,7 @@ int calculateDistance(){
   delayMicroseconds(10);
   tiempo = pulseIn(ECHO_PIN, HIGH,2915);
   int distancep = 0.01715*tiempo;
-  if (distancep < 1){distancep=80;}
+  if (distancep < 1){distancep=0;}
   return distancep;}
 
     void data_IMU(){
