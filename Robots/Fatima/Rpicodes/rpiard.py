@@ -47,7 +47,9 @@ debug =0 #control de modo debug
 ena_Sensor=0
 rst_Sensor=[0]
 ###CONTROL DE INCIIALIZACION###
-
+#Control de Thread#
+stop_threads = False
+#Control de Thread#
 ###tcp###
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
@@ -122,7 +124,37 @@ def spinder(mode):
         time.sleep(1) # ajustar hasta implementar encoder
         detenerse()
 ######Movimiento de los motores######
-
+####thread funcion Bluetooth ######
+def client_thread(client_sock,address, max_buffer_size = 41):
+    print('thread running') 
+    global stop_threads
+    if stop_threads: 
+            break
+    ###control manual###
+        data = client_sock.recv(1024)
+        print(data)
+#        cmdRaw = data.partition('s') # Separa la trama al encontrar el caracter s (cmd,s,'')
+#        cmd= cmdRaw[0] # (cmd)
+        #comando = realizar un movimiento
+#        if (cmd == 'w'):
+#            adelante(0)
+#        if (cmd == 'a'):
+#            izquierda(0)
+#        if (cmd == 'd'):
+#            derecha(0)
+#        if (cmd == 'q'):
+#            spinizq(0)
+#        if (cmd == 'e'):
+#            spinder(0)
+#        if (cmd == 'x'):
+#            print("Modulos Desactivados")
+#            conn.close()
+#            time.sleep(2)
+#            GPIO.cleanup()
+            #os.excel("restart.sh","")
+#            sys.exit()
+    
+####thread funcion Bluetooth ######
 #######Envio de data usando TCP########
 def txData ():
     #data = str(rad[1])+','+str(rad[2])+','+str(imu[0])+','+str(imu[1])+','+str(imu[2])+','+'s'
@@ -327,6 +359,15 @@ try:
                 print("No se ha podido establecer la conexion")
                 server_sock.close()
             ####conexion Bluetooth ######
+            ####thread Bluetooth ######
+            try:
+                t1=threading.Thread(target=client_thread, args=(client_sock,address))
+                t1.start()
+            except:
+                print("Thread did not start.")
+                traceback.print_exc()
+                
+            ####thread Bluetooth ######
             ####conexion TCP ######
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.bind((HOST, PORT))
@@ -343,45 +384,14 @@ try:
             ardS.write(b's')  # fin de mensaje
             print("UART establecido")
         ######ARDUINO ACTIVACION DE SISTEMA#####
-        rpiard(0)
-        ###control manual###
-        data = client_sock.recv(1024)
-        print(data)
-        if not data:
-            print("Modulos Desactivados")
-            time.sleep(2)
-            GPIO.cleanup()
-            #os.excel("restart.sh","")
-            sys.exit()
-        # ANALISIS DE DATA
-#        cmdRaw = data.partition('s') # Separa la trama al encontrar el caracter s (cmd,s,'')
-#        cmd= cmdRaw[0] # (cmd)
-        #comando = realizar un movimiento
-#        if (cmd == 'w'):
-#            adelante(0)
-#        if (cmd == 'a'):
-#            izquierda(0)
-#        if (cmd == 'd'):
-#            derecha(0)
-#        if (cmd == 'q'):
-#            spinizq(0)
-#        if (cmd == 'e'):
-#            spinder(0)
-#        if (cmd == 'x'):
-#            print("Modulos Desactivados")
-#            conn.close()
-#            time.sleep(2)
-#            GPIO.cleanup()
-            #os.excel("restart.sh","")
-#            sys.exit()
-
-#        if (cmd == 'z'):
-#            detenerse() #se enviara una z indicando que el boton ha sido soltado.
-        ###control manual###
-
+        rpiard(0) # separa datos, envia por tcp
+        
         b1S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente
             print ("Modulos Desactivados")
+            stop_threads = True
+            t1.join() 
+            print('thread muerto')
             conn.sendall('0') #indica que el procesdo de graficado debe acabar
             time.sleep(1)
             conn.close()
@@ -389,7 +399,7 @@ try:
             ardS.write(b"s")
             time.sleep(2)
             GPIO.cleanup()
-			#os.excel("restart.sh","")
+	    #os.excel("restart.sh","")
             sys.exit()
 
 
