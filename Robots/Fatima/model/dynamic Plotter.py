@@ -20,10 +20,12 @@ class DynamicPlotter():
         self.plt = pg.plot(title='reg0-180 [PyQtGraph]')
         self.plt.resize(*size)
         self.plt.showGrid(x=True, y=True)
-        self.plt.setLabel('left', 'Distancia horizontal con respecto al sensor', 'cm')
-        self.plt.setLabel('bottom', 'Distancia vertical', 'cm')
+        self.plt.setXRange(-30,30)
+        self.plt.setYRange(0,50)
+        #self.plt.setLabel('left', 'Distancia horizontal con respecto al sensor', 'cm')
+        #self.plt.setLabel('bottom', 'Distancia vertical', 'cm')
         self.radar = self.plt.plot(self.x, self.y, pen=None,symbol='o')
-        #tcp stuff
+
         # QTimer
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.updateplot)
@@ -31,7 +33,7 @@ class DynamicPlotter():
 
     def updateplot(self):
         data = s.recv(12)
-        
+
         print(data)
         if data == '1':
             self.app.closeAllWindows()

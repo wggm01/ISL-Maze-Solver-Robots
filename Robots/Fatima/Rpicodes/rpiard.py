@@ -9,7 +9,7 @@ import socket
 import bluetooth
 import select
 from thread import *
-import threading 
+import threading
 GPIO.setmode (GPIO.BCM) #nomenclatura GPIO# no numero de pin
 ledS=19 #led  de estado de espera/eleccion de modo
 b1=25 #boton para confirmacion de conexion con arduino/MODO MANUAL(activacion en lectura de 1)
@@ -234,7 +234,6 @@ try:
 
     GPIO.output(ledS,GPIO.LOW)
     #GPIO.output(nmos,GPIO.LOW)
-    print("Fin de prueba part1")
 
     time.sleep(0.5) #esperar por cualquier eventualidad
     b1S=GPIO.input(b1) #ALMACENO EL ESTADO inicial
@@ -244,20 +243,24 @@ try:
         print("No puede presionar ambos botones a la vez")
     else:
         while (b1S==0 and b2S == 0): #permanecera en el loop hasta que se presione un boton
-            print("elija el modo")
+            #print("elija el modo")
+            GPIO.output(ledS,GPIO.HIGH)
             b1S=GPIO.input(b1) #ALMACENO EL ESTADO ACTUAL
+            b2S=GPIO.input(b2) #ALMACENO EL ESTADO ACTUAL
             time.sleep(0.25)
             if (b1S == 1):
                 b1F=1 #bandera para modo maze
+                GPIO.output(ledS,GPIO.LOW)
                 #print(b1F)
                 break
-            b2S=GPIO.input(b2) #ALMACENO EL ESTADO ACTUAL
-            time.sleep(0.25)
+            #time.sleep(0.25)
             if (b2S==1):
                 b2F=2 #bandera para modo manual
+                GPIO.output(ledS,GPIO.LOW)
                 #print(b2F)
                 break #SALE DEL WHILE SI ALGUNO DE LOS DOS ES PRESIONADO
-                
+            GPIO.output(ledS,GPIO.LOW)
+
 ####################MODO MAZE###################################
     while b1F == 1: #Modo maze activo
 
@@ -315,6 +318,7 @@ try:
         ###Adquisicion de data y procesamiento###
 
         b1S=GPIO.input(b1)
+        b2S=GPIO.input(b2)
         if (b1S == 1): #detencion del programa manualmente
             print ("Modulos Desactivados")
             if (debug):
@@ -327,6 +331,17 @@ try:
             GPIO.cleanup()
 			#os.excel("restart.sh","")
             sys.exit()
+        elif (b2S == 1):
+            print ("Modulos Desactivados")
+            if (debug):
+                conn.sendall('0') #indica que el procesdo de graficado debe acabar
+                time.slee(1)
+                conn.close()
+            ardS.write(b"E") #Desactiva los sensores
+            ardS.write(b"s")
+            time.sleep(2)
+            GPIO.cleanup()
+            sys.exit()
 
 
  #########################MODO MANUAL###############################################
@@ -336,7 +351,7 @@ try:
             print("Modo manual Activo")
             for i in range(5): #parpadeo 5 veces modo manual
                 GPIO.output(ledS, GPIO.HIGH)
-                time.sleep(1)  # parpadeo indica modo manual
+                time.sleep(0.5)  # parpadeo indica modo manual
                 GPIO.output(ledS, GPIO.LOW)
             ####conexion Bluetooth ######
             server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
@@ -354,14 +369,7 @@ try:
             except Exception as e:
                 print("No se ha podido establecer la conexion")
                 server_sock.close()
-            ####conexion Bluetooth ######
-            ####sirve pero no me gusta la idea ######
-            #stat=select.select([client_sock],[],[],0.001)
-            #if stat[0]:
-            #    data = client_sock.recv(1024)
-            #    print(data)
-            
-            ####sirve pero no me gusta la idea  ######
+
             ####conexion TCP ######
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.bind((HOST, PORT))
@@ -379,8 +387,9 @@ try:
             print("UART establecido")
         ######ARDUINO ACTIVACION DE SISTEMA#####
         rpiard(0) # separa datos, envia por tcp
-        
+
         b1S=GPIO.input(b1)
+        b2S=GPIO.input(b1)
         if (b1S == 1): #detencion del programa manualmente
             print ("Modulos Desactivados")
             conn.sendall('1') #indica que el procesdo de graficado debe acabar
@@ -391,6 +400,17 @@ try:
             time.sleep(2)
             GPIO.cleanup()
 	    #os.excel("restart.sh","")
+            sys.exit()
+        elif (b2S == 1):
+            print ("Modulos Desactivados")
+            if (debug):
+                conn.sendall('0') #indica que el procesdo de graficado debe acabar
+                time.slee(1)
+                conn.close()
+            ardS.write(b"E") #Desactiva los sensores
+            ardS.write(b"s")
+            time.sleep(2)
+            GPIO.cleanup()
             sys.exit()
 
 

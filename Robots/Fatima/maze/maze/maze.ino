@@ -18,10 +18,11 @@ boolean stringComplete = false;  // whether the string is complete
 int flagSerial = 1; //control de envio de instrucciones
 int flagIMU = 0;
 int flagRadar = 0;
+boolean send_Data=false;
 //Serial
 //Servos
 Servo txServo;
-int minPosX = 0; //Extremos que puede alcanzar el servo
+int minPosX = 5; //Extremos que puede alcanzar el servo
 int maxPosX = 180;
 int lastPosX = 0; //Memoria de posicion anterior en x
 int loopCount = 0; //Cuenta cuantos barridos se han hecho
@@ -29,7 +30,7 @@ int radius = 0; //guarda la distancia tomada en ese punto
 int lastRadius = 0;//guarda la distancia pasada
 boolean scanDirection = true; // Indica la direccion del servo
 int scanIncrement = 1; //Suma un grado para el siguiente movimiento del servo
-int posX = (minPosX);//Posicion incial del servo
+int posX = minPosX;//Posicion incial del servo
 int servoattach=1;
 //Servos
 //HC-SR04
@@ -46,6 +47,8 @@ void setup() {
   //Servos
   txServo.attach(5);
   txServo.write(5);
+  delay(500);
+  txServo.detach(5);
   //Servos
   //HC-SR04
   pinMode(TRIG_PIN, OUTPUT);
@@ -120,7 +123,7 @@ bool moveServos()
     txServo.write(posX);
     lastPosX = posX;
     moved = true;}
-  delay(30);
+  delay(15);
   return moved;
 }
 
@@ -181,6 +184,8 @@ void radar(){
     //float rectx,recty;
     //rectx = distance*cos(posX);
     //recty = distance*sin(posX);
+    send_Data=true;}else{send_Data=false;}
+  if (send_Data){
     Serial.print("R");
     Serial.print(",");
     if (scanDirection) {
@@ -190,9 +195,8 @@ void radar(){
     Serial.print(posX);
     Serial.print(",");
     Serial.println(distance);
-    data_IMU();
-    //Mandar imu por UART cada vez que se mueve el servo
-}}
+    data_IMU();send_Data=false;}
+}
 //--------Funciones--------------//
 
 void loop() {
