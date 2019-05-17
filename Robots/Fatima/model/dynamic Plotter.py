@@ -30,9 +30,10 @@ class DynamicPlotter():
         self.timer.start(self._interval)
 
     def updateplot(self):
-        data = s.recv(8)
+        data = s.recv(12)
+        
         print(data)
-        if data == '0':
+        if data == '1':
             self.app.closeAllWindows()
         data_decode=data.decode("utf-8")
         data_str=str(data_decode)
@@ -62,7 +63,7 @@ class DynamicPlotter():
 
 if __name__ == '__main__':
 
-    server_address = ('192.168.25.104',6793)
+    server_address = ('192.168.25.100',6794)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(server_address)
     m = DynamicPlotter(sampleinterval=0.0001, timewindow=0.0351) #intervalo en segundos
