@@ -23,7 +23,7 @@ boolean send_Data=false;
 //Servos
 Servo txServo;
 int minPosX = 5; //Extremos que puede alcanzar el servo
-int maxPosX = 180;
+int maxPosX = 170;
 int lastPosX = 0; //Memoria de posicion anterior en x
 int loopCount = 0; //Cuenta cuantos barridos se han hecho
 int radius = 0; //guarda la distancia tomada en ese punto
@@ -48,7 +48,7 @@ void setup() {
   txServo.attach(5);
   txServo.write(5);
   delay(500);
-  txServo.detach(5);
+  txServo.detach();
   //Servos
   //HC-SR04
   pinMode(TRIG_PIN, OUTPUT);
