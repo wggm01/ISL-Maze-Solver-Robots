@@ -70,8 +70,8 @@ def detenerse():
 
 
 def adelante(mode):
-    ena.ChangeDutyCycle(70)  # duty cycle
-    enb.ChangeDutyCycle(70)
+    ena.ChangeDutyCycle(50)  # duty cycle
+    enb.ChangeDutyCycle(50)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.HIGH)
@@ -82,7 +82,7 @@ def adelante(mode):
 
 
 def izquierda(mode):
-    ena.ChangeDutyCycle(75)
+    ena.ChangeDutyCycle(50)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.HIGH)
@@ -93,8 +93,8 @@ def izquierda(mode):
 
 
 def spinizq(mode):
-    ena.ChangeDutyCycle(75)
-    enb.ChangeDutyCycle(75)
+    ena.ChangeDutyCycle(50)
+    enb.ChangeDutyCycle(50)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.HIGH)
     GPIO.output(motorB1, GPIO.HIGH)
@@ -105,7 +105,7 @@ def spinizq(mode):
 
 
 def derecha(mode):
-    enb.ChangeDutyCycle(75)
+    enb.ChangeDutyCycle(50)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.LOW)
@@ -116,8 +116,8 @@ def derecha(mode):
 
 
 def spinder(mode):
-    enb.ChangeDutyCycle(75)
-    ena.ChangeDutyCycle(75)
+    enb.ChangeDutyCycle(50)
+    ena.ChangeDutyCycle(50)
     GPIO.output(motorA1, GPIO.HIGH)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.LOW)
@@ -140,10 +140,10 @@ def threaded(c):
         if data_str == 'w':
             adelante(0)
         elif data_str == 'a':
-            izquierda(0)
-        elif data_str == 's':
-            derecha(0)
+            spinizq(0)
         elif data_str == 'd':
+            spinder(0)
+        elif data_str == 's':
             detenerse()
         else:
             detenerse()
