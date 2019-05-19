@@ -184,8 +184,6 @@ void radar(){
     //float rectx,recty;
     //rectx = distance*cos(posX);
     //recty = distance*sin(posX);
-    send_Data=true;}else{send_Data=false;}
-  if (send_Data){
     Serial.print("R");
     Serial.print(",");
     if (scanDirection) {
@@ -194,9 +192,9 @@ void radar(){
     Serial.print(",");
     Serial.print(posX);
     Serial.print(",");
-    Serial.println(distance);
-    data_IMU();send_Data=false;}
-}
+    Serial.println(distance);}}
+   
+
 //--------Funciones--------------//
 
 void loop() {

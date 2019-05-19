@@ -21,7 +21,7 @@ class DynamicPlotter():
         self.plt.resize(*size)
         self.plt.showGrid(x=True, y=True)
         self.plt.setXRange(-30,30)
-        self.plt.setYRange(0,50)
+        self.plt.setYRange(0,45)
         #self.plt.setLabel('left', 'Distancia horizontal con respecto al sensor', 'cm')
         #self.plt.setLabel('bottom', 'Distancia vertical', 'cm')
         self.radar = self.plt.plot(self.x, self.y, pen=None,symbol='o')
@@ -43,7 +43,7 @@ class DynamicPlotter():
         deg,distance=packet_slice[0].split(",")
         deg=float(deg)
         distance=float(distance)
-        if(deg<181):
+        if(deg<171):
             rectx=distance*math.cos(math.radians(deg))
             recty=distance*math.sin(math.radians(deg))
 
@@ -54,7 +54,7 @@ class DynamicPlotter():
             self.y[:] = self.databuffery
 
             self.radar.setData(self.x, self.y,pen=None,symbol='o')
-        if(deg==179):
+        if(deg==169):
             self.databufferx = collections.deque([0.0]*self._bufsize, self._bufsize)
             self.databuffery = collections.deque([0.0]*self._bufsize, self._bufsize)
 
