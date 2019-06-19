@@ -10,6 +10,8 @@ import bluetooth
 import select
 from thread import *
 import threading
+import math
+from openpyxl import load_workbook
 GPIO.setmode (GPIO.BCM) #nomenclatura GPIO# no numero de pin
 ledS=19 #led  de estado de espera/eleccion de modo
 b1=25 #boton para confirmacion de conexion con arduino/MODO MANUAL(activacion en lectura de 1)
@@ -59,6 +61,18 @@ rad=['s',0,0] #'dire','ang','distance'
 HOST= '192.168.25.121'
 PORT= 6794 # Revisar contra el cliente
 ###tcp###
+##Variables para toma de decision##
+rect=[0,0] # rect_x rect_y
+Dt=[0]
+Dn=[0,0,0,0]
+wb = load_workbook(filename = 'PROYECTO DSP DATA DE 4 CASOS (version 1).xlsx', data_only=True)
+sheet_ranges = wb['Casos para algoritmo']
+dn1=0  #distancias dn
+dn2=0
+dn3=0
+dn4=0
+i=1
+##Variables para toma de decision##
 ######Movimiento de los motores######
 def detenerse():
     ena.ChangeDutyCycle(0)
@@ -127,7 +141,7 @@ def spinder(mode):
         detenerse()
 ######Movimiento de los motores######
 ######Funcion Thread######
-def threaded(c):
+def threaded(c): #manual mediante thread
     while True:
         #print("Thread ejectuado")
         data=c.recv(1024)
@@ -155,6 +169,21 @@ def threaded(c):
     c.close()
 ######Funcion Thread######
 
+######Funcion Thread######
+def threadedMaze(Dt[0]): #maze control mediante thread
+    while True:  #caso 1 = izquierda caso2=hacia delante caso3= derecha caso4= encerrado
+         data_str = Dt[0]
+        if data_str == 1 :
+            adelante(1)
+        elif data_str == 0:
+            spinizq(1)
+        elif data_str == 2:
+            spinder(1)
+        elif data_str == 3:
+            spinder(2)
+        else:
+            detenerse()
+######Funcion Thread######
 
 #######Envio de data usando TCP########
 def txData ():
@@ -197,28 +226,63 @@ def rpiard(logic):
                 rad[2] = dsplit[3]
                 rad[2] = rad[2].rstrip('\r\n')
                 rad[2] = float(rad[2])
-                #print(rad[0], rad[1], rad[2])
+                rect[0]=rad[2]*math.cos(math.radians(rad[1]))
+                rect[1]=rad[2]*math.sin(math.radians(rad[1]))
                 ########LOGICA DE MAZE########
                 if (logic):
-                    #cmd_raw = mazelogic.logic(rad[0], rad[1], rad[2])
-                    #cmd,ena_Sensor1= cmd_raw
-                    #Aqui ira la toma de decision
+                    with open ("radarData.csv", "a") as pos:
+                        pos.write("%s, %s \n" % ( rad[1],rad[2]))
+                    #logica
+                    if(i<166):
+                        #caso#1
+                        e=sheet_ranges.cell(row=i,column=5).value
+                        f=sheet_ranges.cell(row=i,column=6).value
+                        dn1=(((rect[0]-e)**2+(rect[1]-f)**)**0.5)
+                        Dn1=Dn1+dn1
+                        #caso #2
+                        l=sheet_ranges.cell(row=i,column=11).value
+                        m=sheet_ranges.cell(row=i,column=12).value
+                        dn2=(((rect[0]-l)**2+(rect[1]-m)**)**0.5)
+                        Dn2=Dn2+dn2
+                        #caso #3
+                        s=sheet_ranges.cell(row=i,column=18).value
+                        t=sheet_ranges.cell(row=i,column=19).value
+                        dn3=(((rect[0]-s)**2+(rect[1]-t)**)**0.5)
+                        Dn3=Dn3+dn3
+                        #caso #4
+                        y=sheet_ranges.cell(row=i,column=24).value
+                        z=sheet_ranges.cell(row=i,column=25).value
+                        dn3=(((rect[0]-y)**2+(rect[1]-z)**)**0.5)
+                        Dn4=Dn4+dn4
+                        i+=1
+                    i=0
+                    Dn1=round(Dn1,4)
+                    Dn2=round(Dn2,4)
+                    Dn3=round(Dn3,4)
+                    Dn4=round(Dn4,4)
+                    Dn[0]=Dn1
+                    Dn[1]=Dn2
+                    Dn[2]=Dn3
+                    Dn[3]=Dn4
+                    #Distancia Menor para determinar caso
+                    Dt[0]=Dn.index(min(Dn))
+                    #logica
+                    with open ("MinimoCuadrado.csv", "a") as pos:
+                        pos.write("%s, %s, %s, %s, %s, %s, %s, %s, %s \n" % (,rad[1],dn1,Dn1,dn2,Dn2,dn3,Dn3,dn4,Dn4))
                     if(debug):
                         txData()
-                    print(rad[0], rad[1], rad[2])
                 if(logic==0):
                     txData()
                     with open ("reg0-180.csv", "a") as pos:
                         pos.write("%s, %s \n" % ( rad[1],rad[2]))
+                        
 ####adquisiscion de data####
-
-
 print("###incio del programa###")
 GPIO.output(nmos,GPIO.LOW) #apaga rele
 time.sleep(2)
 GPIO.output(nmos,GPIO.HIGH) #enciende rele
-#ardS = serial.Serial("/dev/serial0", baudrate = 115200) # en espera de level shifter
-ardS = serial.Serial("/dev/ttyUSB0", baudrate =115200)
+ardS = serial.Serial("/dev/serial0", baudrate = 115200) # en espera de level shifter
+#ardS = serial.Serial("/dev/ttyUSB0", baudrate =115200)
 
 try:
     #Prende Led de estado y espera lectura de boton.
@@ -286,7 +350,7 @@ try:
                     ardS.write(b'E')
                     ardS.write(b's')
                     time.sleep(2)
-					#os.excel("restart.sh","")
+		    #os.excel("restart.sh","")
                     sys.exit()
 
                 s.bind((HOST, PORT))
@@ -295,6 +359,11 @@ try:
                 conn, addr = s.accept() #se queda esperando un cliente
                 print('Connected by', addr)
             ######TCP INICIALIZACION#####
+            ####Thread Inicializacion####
+                print_lock.acquire()
+                start_new_thread(threaded, (Dt[0],))
+                print("Thread iniciado Modo Maze")
+            ####Thread Inicializacion####
                 break
             if (b2S == 1):  # !debug
                 flag = 0
@@ -326,14 +395,14 @@ try:
         if (b1S == 1): #detencion del programa manualmente
             print ("Modulos Desactivados")
             if (debug):
-                conn.sendall('0') #indica que el procesdo de graficado debe acabar
-                time.slee(1)
+                conn.sendall('0') #indica que el proceso de graficado debe acabar
+                time.sleep(1)
                 conn.close()
             ardS.write(b"E") #Desactiva los sensores
             ardS.write(b"s")
             time.sleep(2)
             GPIO.cleanup()
-			#os.excel("restart.sh","")
+	    #os.excel("restart.sh","")
             sys.exit()
         elif (b2S == 1):
             print ("Modulos Desactivados")
