@@ -12,6 +12,7 @@ from thread import *
 import threading
 import math
 from openpyxl import load_workbook
+from Queue import Queue
 GPIO.setmode (GPIO.BCM) #nomenclatura GPIO# no numero de pin
 ledS=19 #led  de estado de espera/eleccion de modo
 b1=25 #boton para confirmacion de conexion con arduino/MODO MANUAL(activacion en lectura de 1)
@@ -25,6 +26,7 @@ GPIO.setup(b2,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 ####INCIALIZACION DE PINES PARA L298N####
 #Control Thread#
 print_lock = threading.Lock()
+q = Queue(maxsize=0)
 #Control Thread#
 motorA1=4 # in1
 motorA2=23# in3
@@ -58,20 +60,17 @@ rst_Sensor=[0]
 ###tcp###
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
-HOST= '192.168.25.121'
+HOST= '192.168.25.110'
 PORT= 6794 # Revisar contra el cliente
 ###tcp###
 ##Variables para toma de decision##
 rect=[0,0] # rect_x rect_y
-Dt=[0]
+Dt=['Ndty',0]
 Dn=[0,0,0,0]
+dn=[0,0,0,0]
+i=1
 wb = load_workbook(filename = 'PROYECTO DSP DATA DE 4 CASOS (version 1).xlsx', data_only=True)
 sheet_ranges = wb['Casos para algoritmo']
-dn1=0  #distancias dn
-dn2=0
-dn3=0
-dn4=0
-i=1
 ##Variables para toma de decision##
 ######Movimiento de los motores######
 def detenerse():
@@ -84,19 +83,19 @@ def detenerse():
 
 
 def adelante(mode):
-    ena.ChangeDutyCycle(100)  # duty cycle
-    enb.ChangeDutyCycle(100)
+    ena.ChangeDutyCycle(70)  # duty cycle
+    enb.ChangeDutyCycle(70)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.HIGH)
     GPIO.output(motorB2, GPIO.HIGH)
     if mode == 1:
-        time.sleep(1) # ajustar hasta implementar encoder
+        time.sleep(0.5) # ajustar hasta implementar encoder
         detenerse()
 
 
 def izquierda(mode):
-    ena.ChangeDutyCycle(100)
+    ena.ChangeDutyCycle(80)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.HIGH)
@@ -107,14 +106,14 @@ def izquierda(mode):
 
 
 def spinizq(mode):
-    ena.ChangeDutyCycle(100)
-    enb.ChangeDutyCycle(100)
+    ena.ChangeDutyCycle(70)
+    enb.ChangeDutyCycle(70)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.HIGH)
     GPIO.output(motorB1, GPIO.HIGH)
     GPIO.output(motorB2, GPIO.LOW)
     if mode == 1:
-        time.sleep(1) # ajustar hasta implementar encoder
+        time.sleep(0.5) # ajustar hasta implementar encoder
         detenerse()
 
 
@@ -130,14 +129,14 @@ def derecha(mode):
 
 
 def spinder(mode):
-    enb.ChangeDutyCycle(100)
-    ena.ChangeDutyCycle(100)
+    enb.ChangeDutyCycle(70)
+    ena.ChangeDutyCycle(70)
     GPIO.output(motorA1, GPIO.HIGH)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.LOW)
     GPIO.output(motorB2, GPIO.HIGH)
     if mode == 1:
-        time.sleep(1) # ajustar hasta implementar encoder
+        time.sleep(0.5) # ajustar hasta implementar encoder
         detenerse()
 ######Movimiento de los motores######
 ######Funcion Thread######
@@ -170,18 +169,24 @@ def threaded(c): #manual mediante thread
 ######Funcion Thread######
 
 ######Funcion Thread######
-def threadedMaze(Dt[0]): #maze control mediante thread
-    while True:  #caso 1 = izquierda caso2=hacia delante caso3= derecha caso4= encerrado
-         data_str = Dt[0]
+def threadedMaze(q): #maze control mediante thread
+    while True :  #caso 1 = izquierda caso2=hacia delante caso3= derecha caso4= encerrado
+        data_str=q.get()
+        
         if data_str == 1 :
+            print("adelante(1)")
             adelante(1)
         elif data_str == 0:
+            print("spinizq(1)")
             spinizq(1)
         elif data_str == 2:
+            print("spinder(1)")
             spinder(1)
         elif data_str == 3:
-            spinder(2)
+            print("spinder(1) encerrado")
+            spinder(1) 
         else:
+            print("detenerse()")
             detenerse()
 ######Funcion Thread######
 
@@ -206,7 +211,10 @@ def txData ():
         time.sleep(2)
         sys.exit()
 ########Envio de dara usanto TCP######
-
+#arreglo para funcion rpiard
+def remap(x,in_min,in_max,out_min,out_max):
+    return (x-in_min)*(out_max-out_min)/(in_max-in_min)+out_min
+#arreglo para funcion rpiard
 ####adquisicion datat#####
 def rpiard(logic):
     data_raw = ardS.readline()
@@ -232,45 +240,56 @@ def rpiard(logic):
                 if (logic):
                     with open ("radarData.csv", "a") as pos:
                         pos.write("%s, %s \n" % ( rad[1],rad[2]))
-                    #logica
-                    if(i<166):
+                    i= remap(rad[1],6,170,1,165)
+                    
+                    if (i <166):
                         #caso#1
                         e=sheet_ranges.cell(row=i,column=5).value
                         f=sheet_ranges.cell(row=i,column=6).value
-                        dn1=(((rect[0]-e)**2+(rect[1]-f)**)**0.5)
-                        Dn1=Dn1+dn1
+                        #print("e-f= ",e,f,i,rad[1])
+                        dn[0]=(((rect[0]-e)**2+(rect[1]-f)**2)**0.5)
+                        Dn[0]=Dn[0]+dn[0]
                         #caso #2
-                        l=sheet_ranges.cell(row=i,column=11).value
-                        m=sheet_ranges.cell(row=i,column=12).value
-                        dn2=(((rect[0]-l)**2+(rect[1]-m)**)**0.5)
-                        Dn2=Dn2+dn2
+                        l=sheet_ranges.cell(row=i,column=12).value
+                        m=sheet_ranges.cell(row=i,column=13).value
+                        #print("l-m= ",l,m,i,rad[1])
+                        dn[1]=(((rect[0]-l)**2+(rect[1]-m)**2)**0.5)
+                        Dn[1]=Dn[1]+dn[1]
                         #caso #3
-                        s=sheet_ranges.cell(row=i,column=18).value
-                        t=sheet_ranges.cell(row=i,column=19).value
-                        dn3=(((rect[0]-s)**2+(rect[1]-t)**)**0.5)
-                        Dn3=Dn3+dn3
+                        s=sheet_ranges.cell(row=i,column=19).value
+                        t=sheet_ranges.cell(row=i,column=20).value
+                        dn[2]=(((rect[0]-s)**2+(rect[1]-t)**2)**0.5)
+                        Dn[2]=Dn[2]+dn[2]
+                        #print("s-t= ",s,t,i,rad[1])
                         #caso #4
-                        y=sheet_ranges.cell(row=i,column=24).value
-                        z=sheet_ranges.cell(row=i,column=25).value
-                        dn3=(((rect[0]-y)**2+(rect[1]-z)**)**0.5)
-                        Dn4=Dn4+dn4
-                        i+=1
-                    i=0
-                    Dn1=round(Dn1,4)
-                    Dn2=round(Dn2,4)
-                    Dn3=round(Dn3,4)
-                    Dn4=round(Dn4,4)
-                    Dn[0]=Dn1
-                    Dn[1]=Dn2
-                    Dn[2]=Dn3
-                    Dn[3]=Dn4
-                    #Distancia Menor para determinar caso
-                    Dt[0]=Dn.index(min(Dn))
-                    #logica
-                    with open ("MinimoCuadrado.csv", "a") as pos:
-                        pos.write("%s, %s, %s, %s, %s, %s, %s, %s, %s \n" % (,rad[1],dn1,Dn1,dn2,Dn2,dn3,Dn3,dn4,Dn4))
+                        y=sheet_ranges.cell(row=i,column=25).value
+                        z=sheet_ranges.cell(row=i,column=26).value
+                        dn[3]=(((rect[0]-y)**2+(rect[1]-z)**2)**0.5)
+                        Dn[3]=Dn[3]+dn[3]
+                        #|  print("y-z= ",y,z,i,rad[1])
+                        with open ("MinimoCuadrado.csv", "a") as pos:
+                            pos.write("%s, %s, %s, %s, %s, %s, %s, %s, %s \n" % (rad[1],dn[0],Dn[0],dn[1],Dn[1],dn[2],Dn[2],dn[3],Dn[3]))
+                    if (i == 165):
+                        print("Analisis completo")
+                        Dn[0]=round(Dn[0],4)
+                        Dn[1]=round(Dn[1],4)
+                        Dn[2]=round(Dn[2],4)
+                        Dn[3]=round(Dn[3],4)
+                        #Distancia Menor para determinar caso
+                        Dt[0]=Dn.index(min(Dn))
+                        q.put(Dt[0])
+                        with open ("Decision.csv", "a") as pos:
+                            pos.write("%s \n" % (Dt[0]))
+                        Dt[0]='Ndty'
+                        Dn[0]=0
+                        Dn[1]=0
+                        Dn[2]=0
+                        Dn[3]=0
+                        i=1
+                    
                     if(debug):
                         txData()
+                    
                 if(logic==0):
                     txData()
                     with open ("reg0-180.csv", "a") as pos:
@@ -287,6 +306,7 @@ ardS = serial.Serial("/dev/serial0", baudrate = 115200) # en espera de level shi
 try:
     #Prende Led de estado y espera lectura de boton.
     GPIO.output(ledS,GPIO.HIGH) #enciende led de estado
+    
 
     time.sleep(0.5)#dejar que actue la raspberry
     while (flag == 0):
@@ -299,7 +319,7 @@ try:
         if (ardR1 == '1'): #se sale si presionas b1
             flag=1
             break
-
+    print("Elegir modo de operacion")
     GPIO.output(ledS,GPIO.LOW)
     #GPIO.output(nmos,GPIO.LOW)
 
@@ -350,22 +370,27 @@ try:
                     ardS.write(b'E')
                     ardS.write(b's')
                     time.sleep(2)
-		    #os.excel("restart.sh","")
+                    #os.excel("restart.sh","")
                     sys.exit()
 
                 s.bind((HOST, PORT))
                 s.listen(3)  # Maximo tres clientes
-                print("Creando Socket_Modo_Mze")
+                print("Creando Socket_Modo_Maze")
                 conn, addr = s.accept() #se queda esperando un cliente
                 print('Connected by', addr)
             ######TCP INICIALIZACION#####
             ####Thread Inicializacion####
                 print_lock.acquire()
-                start_new_thread(threaded, (Dt[0],))
-                print("Thread iniciado Modo Maze")
+                start_new_thread(threadedMaze, (q,))
+                print("Thread iniciado Modo Maze debug")
             ####Thread Inicializacion####
                 break
             if (b2S == 1):  # !debug
+                ####Thread Inicializacion####
+                print_lock.acquire()
+                start_new_thread(threadedMaze, (q,))
+                print("Thread iniciado Modo Maze debug!")
+                ####Thread Inicializacion####
                 flag = 0
                 debug =0
                 break
@@ -385,7 +410,7 @@ try:
             ardS.write(b's')  # fin de mensaje
             print("UART establecido")
         ######ARDUINO ACTIVACION DE SISTEMA#####
-
+        
         ###Adquisicion de data y procesamiento###
         rpiard(1)
         ###Adquisicion de data y procesamiento###
