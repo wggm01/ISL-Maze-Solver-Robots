@@ -1,0 +1,121 @@
+ticks_f=0
+ticks_b=0
+front_enc=1
+back_enc=1 #corregir
+checker=[0]*177 #evita la eleccion de seguir recto cuando no hay nada en los alrededores
+
+GPIO.setup(front_enc,GPIO.IN)
+GPIO.setup(back_enc,GPIO.IN)
+GPIO.add_event_detect(front_enc, GPIO.RISING, callback=f_counter)
+GPIO.add_event_detect(back_enc, GPIO.RISING, callback=b_counter)
+
+#callbacks
+def f_counter(front_enc):
+	global ticks_f
+	ticks_f += 1
+	return
+def f_counter(back_enc):
+	global ticks_b
+	ticks_b += 1
+	return
+
+incli=[0,0,0,0,0,0,0,0,0,0,0,0]
+def adelante(mode):
+	for i in range (1,12):
+			incli[i]=imu[1] #pitch measures
+		incli_mean=sum(incli)/float(len(incli)) #media
+		if(incli_mean>30):
+			powa=100 #Loma detectada
+		else:
+			powa=80 #no hay inclinacion
+		ena.ChangeDutyCycle(powa)  # duty cycle
+		enb.ChangeDutyCycle(powa)
+		GPIO.output(motorA1, GPIO.LOW)
+		GPIO.output(motorA2, GPIO.LOW)
+		GPIO.output(motorB1, GPIO.HIGH)
+		GPIO.output(motorB2, GPIO.HIGH)
+    if (mode):
+        while((ticks_b<13 and ticks_f)<13): #un retraso a punta de interrupciones
+			continue
+		ticks_b=0
+		ticks_f=0
+        detenerse()
+
+
+def izquierda(mode):
+	ena.ChangeDutyCycle(70)
+	GPIO.output(motorA1, GPIO.LOW)
+	GPIO.output(motorA2, GPIO.LOW)
+	GPIO.output(motorB1, GPIO.HIGH)
+	GPIO.output(motorB2, GPIO.LOW)
+    if (mode):
+        while((ticks_b<13 and ticks_f)<13): #un retraso a punta de interrupciones
+			continue
+		ticks_b=0
+		ticks_f=0
+        detenerse()
+
+
+def spinizq(mode):
+	ena.ChangeDutyCycle(70)
+	enb.ChangeDutyCycle(70)
+	GPIO.output(motorA1, GPIO.LOW)
+	GPIO.output(motorA2, GPIO.HIGH)
+	GPIO.output(motorB1, GPIO.HIGH)
+	GPIO.output(motorB2, GPIO.LOW)
+    if (mode):
+		while((ticks_b<6 and ticks_f)<6): #un retraso a punta de interrupciones
+			continue
+		ticks_b=0
+		ticks_f=0
+        detenerse()
+
+
+def derecha(mode):
+    enb.ChangeDutyCycle(70)
+    GPIO.output(motorA1, GPIO.LOW)
+    GPIO.output(motorA2, GPIO.LOW)
+    GPIO.output(motorB1, GPIO.LOW)
+    GPIO.output(motorB2, GPIO.HIGH)
+    if (mode):
+		while((ticks_b<13 and ticks_f)<13): #un retraso a punta de interrupciones
+			continue
+		ticks_b=0
+		ticks_f=0
+        detenerse()
+
+
+def spinder(mode):
+    enb.ChangeDutyCycle(70)
+    ena.ChangeDutyCycle(70)
+    GPIO.output(motorA1, GPIO.HIGH)
+    GPIO.output(motorA2, GPIO.LOW)
+    GPIO.output(motorB1, GPIO.LOW)
+    GPIO.output(motorB2, GPIO.HIGH)
+    if (mode):
+		while((ticks_b<6 and ticks_f)<6): #un retraso a punta de interrupciones
+			continue
+		ticks_b=0
+		ticks_f=0
+        detenerse()
+		
+def case4(mode):
+    enb.ChangeDutyCycle(70)
+    ena.ChangeDutyCycle(70)
+    GPIO.output(motorA1, GPIO.HIGH)
+    GPIO.output(motorA2, GPIO.LOW)
+    GPIO.output(motorB1, GPIO.LOW)
+    GPIO.output(motorB2, GPIO.HIGH)
+    if (mode):
+		while((ticks_b<13 and ticks_f)<13): #un retraso a punta de interrupciones
+			continue
+		ticks_b=0
+		ticks_f=0
+        detenerse()
+		
+checker[contador]=rad[1] #guardar medidas tomadas
+check=sum(checker)
+if(check<100):
+	#detener motores
+else:
+	#hacer eleccion
