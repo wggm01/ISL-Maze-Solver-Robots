@@ -40,8 +40,21 @@ float tiempo; //crea la variable tiempo (como float)
 #define ECHO_PIN A0
 //HC-SR04
 
+//Control de Encoder
+boolean encoR,encoF;
+boolean once=1;
+boolean lastState;
+int cnt=0;
+//Control de Encoder
+
 void setup() {
-   pinMode(LED_BUILTIN, OUTPUT); //Indicador de proceso de calibracion
+  //Encoder pines
+  pinMode(13,INPUT);//D0 de encoder
+  pinMode(12,INPUT);//Ebng
+  pinMode(11,OUTPUT);//Eend
+  //nivel de referencia
+  //Encoder pines
+//   pinMode(LED_BUILTIN, OUTPUT); //Indicador de proceso de calibracion
   // initialize serial:
   Serial.begin(115200);
   //Servos
@@ -79,43 +92,45 @@ void setup() {
   int gC = IMU.calibrateGyro();
   if (gC>0){
     Serial.println("Gyro calibrado");
-   for(int i=0; i<2; i++ ){
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(500);
-    digitalWrite(LED_BUILTIN, LOW);
-    }}else{Serial.println("Error Gyro");}
+//   for(int i=0; i<2; i++ ){
+//    digitalWrite(LED_BUILTIN, HIGH);
+//    delay(500);
+//    digitalWrite(LED_BUILTIN, LOW);
+//    } 
+  }else{Serial.println("Error Gyro");}
 
  //Calibracion de Acce
  int aC =IMU.calibrateAccel();
   if (aC>0){
     Serial.println("Acce calibrado");
-   for(int i=0; i<3; i++ ){
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(500);
-    digitalWrite(LED_BUILTIN, LOW);
-    }}else{Serial.println("Error Gyro");}
+//   for(int i=0; i<3; i++ ){
+//    digitalWrite(LED_BUILTIN, HIGH);
+//    delay(500);
+//    digitalWrite(LED_BUILTIN, LOW);
+//    }
+    }else{Serial.println("Error Gyro");}
   Serial.println("Mueva ligeramente el dispositivo");
 //Calibracion magnetometro
  int mC =IMU.calibrateAccel();
  if (mC>0){
     Serial.println("Mag calibrado");
-   for(int i=0; i<4; i++ ){
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(500);
-    digitalWrite(LED_BUILTIN, LOW);
-    }}else{Serial.println("Error Gyro");}
+//   for(int i=0; i<4; i++ ){
+//    digitalWrite(LED_BUILTIN, HIGH);
+//    delay(500);
+//    digitalWrite(LED_BUILTIN, LOW);
+//    }
+    }else{Serial.println("Error Gyro");}
   //MPU
-  //Confirmacion de idle
+  //Confirmacion de comunicacion
    for(int i=0; i<4; i++ ){
      Serial.println('1');
      delay(200);
     }
-  //Confirmacion de idle
+  //Confirmacion de comunicacion
 }
 
 //--------Funciones--------------//
-bool moveServos()
-{
+bool moveServos(){
   bool moved = false;
   static int lastPosX;
   int delta = 0;
@@ -187,14 +202,12 @@ void radar(){
     Serial.print("R");
     Serial.print(",");
     if (scanDirection) {
-      Serial.print("CCW");}
-    else{Serial.print("CW");}
-    Serial.print(",");
-    Serial.print(posX);
-    Serial.print(",");
-    Serial.println(distance);}}
-   
-
+      Serial.print("CCW");
+      Serial.print(",");
+      Serial.print(posX);
+      Serial.print(",");
+      Serial.println(distance);}
+    }}
 //--------Funciones--------------//
 
 void loop() {
@@ -227,7 +240,24 @@ if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
 //CONTROL DE RADAR
 if(flagRadar == 1){
 radar();
-  }}
+  }
+//Control de Encoder
+if(digitalRead(12)==true){ //Ebgn=1 inicio de conteo
+  if(once){once=0;lastState=digitalRead(13);} //Referencia
+  boolean eState=digitalRead(13); //Estado actual del D0 del sensor
+  if(eState != lastState){
+    if(eState==LOW){
+      encoF=1;}//Flanco de bajada detectado
+    else{encoR=1;}}//Flanco de subida detectado
+    lastState=eState;//Actualizacion de estado
+    int limit = (int)cmd[0];//Convertir a entero
+   if((encoR && cnt<limit){ // cada Flanco de subida cuenta mientras este debajo del limite.
+    cnt += 1;
+   }else{cnt = 0;encoR=0;once=1;digitalWrite(11,HIGH);}} //le dice que ya termico de contar
+   else{digitalWrite(11,LOW);}
+//Control de Encoder
+  
+  }
 
 void serialEvent() {
   while (Serial.available()) {
