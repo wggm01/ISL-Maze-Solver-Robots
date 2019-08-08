@@ -49,9 +49,9 @@ int cnt=0;
 
 void setup() {
   //Encoder pines
-  pinMode(13,INPUT);//D0 de encoder
-  pinMode(12,INPUT);//Ebng
-  pinMode(11,OUTPUT);//Eend
+  pinMode(2,INPUT);//D0 de encoder
+  pinMode(3,INPUT);//Ebng
+  pinMode(4,OUTPUT);//Eend
   //nivel de referencia
   //Encoder pines
 //   pinMode(LED_BUILTIN, OUTPUT); //Indicador de proceso de calibracion
