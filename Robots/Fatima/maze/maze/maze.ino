@@ -251,7 +251,7 @@ if(digitalRead(12)==true){ //Ebgn=1 inicio de conteo
     else{encoR=1;}}//Flanco de subida detectado
     lastState=eState;//Actualizacion de estado
     int limit = (int)cmd[0];//Convertir a entero
-   if((encoR && cnt<limit){ // cada Flanco de subida cuenta mientras este debajo del limite.
+   if(encoR && cnt<limit){ // cada Flanco de subida cuenta mientras este debajo del limite.
     cnt += 1;
    }else{cnt = 0;encoR=0;once=1;digitalWrite(11,HIGH);}} //le dice que ya termico de contar
    else{digitalWrite(11,LOW);}
