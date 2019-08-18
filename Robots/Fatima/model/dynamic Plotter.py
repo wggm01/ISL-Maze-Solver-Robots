@@ -65,7 +65,7 @@ class DynamicPlotter():
 
 if __name__ == '__main__':
 
-    server_address = ('192.168.25.121',6794)
+    server_address = ('192.168.43.105',6794)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect(server_address)
     m = DynamicPlotter(sampleinterval=0.0001, timewindow=0.0351) #intervalo en segundos
