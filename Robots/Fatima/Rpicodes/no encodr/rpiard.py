@@ -60,7 +60,7 @@ rst_Sensor=[0]
 ###tcp###
 imu=[0,0,0] # yaw, pitch, roll
 rad=['s',0,0] #'dire','ang','distance'
-HOST= '192.168.43.105'
+HOST= '192.168.25.110'
 PORT= 6794 # Revisar contra el cliente
 ###tcp###
 ##Variables para toma de decision##
@@ -138,17 +138,6 @@ def spinder(mode):
     if mode == 1:
         time.sleep(0.5) # ajustar hasta implementar encoder
         detenerse()
-
-def case4(mode):
-    enb.ChangeDutyCycle(70)
-    ena.ChangeDutyCycle(70)
-    GPIO.output(motorA1, GPIO.HIGH)
-    GPIO.output(motorA2, GPIO.LOW)
-    GPIO.output(motorB1, GPIO.LOW)
-    GPIO.output(motorB2, GPIO.HIGH)
-    if mode == 1:
-        time.sleep(1) # ajustar hasta implementar encoder
-        detenerse()
 ######Movimiento de los motores######
 ######Funcion Thread######
 def threaded(c): #manual mediante thread
@@ -189,13 +178,13 @@ def threadedMaze(q): #maze control mediante thread
             adelante(1)
         elif data_str == 0:
             print("spinizq(1)")
-            spinder(1)
+            spinizq(1)
         elif data_str == 2:
             print("spinder(1)")
-            spinizq(1)
+            spinder(1)
         elif data_str == 3:
             print("spinder(1) encerrado")
-            case4(1) 
+            spinder(1) 
         else:
             print("detenerse()")
             detenerse()
