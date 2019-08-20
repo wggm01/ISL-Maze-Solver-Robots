@@ -1,5 +1,5 @@
 
-#import mazelogic # se encarga de la logica en el modo maze(opcion de debugger usando procesing)
+import mazelogic # se encarga de la logica en el modo maze(opcion de debugger usando procesing)
 import RPi.GPIO as GPIO
 import sys
 import serial
@@ -45,6 +45,14 @@ enb=GPIO.PWM(motorenb,500)
 ena.start(0)
 enb.start(0)
 ####INCIALIZACION DE PINES PARA L298N####
+##Encoder##
+Ebgn=22 #Salida
+Eend=21 #Entrada
+GPIO.setup(Eend,GPIO.IN)
+GPIO.setup(Ebgn,GPIO.OUT)
+k=0 #contador dummy
+##Encoder##
+
 
 ###CONTROL DE INCIIALIZACION###
 flag=0 #activa la secuencia de activacion y acepta el modo debug
@@ -59,8 +67,9 @@ rst_Sensor=[0]
 ###CONTROL DE INCIIALIZACION###
 ###tcp###
 imu=[0,0,0] # yaw, pitch, roll
+incli=[0,0,0,0,0,0,0,0,0,0,0,0]
 rad=['s',0,0] #'dire','ang','distance'
-HOST= '192.168.43.105'
+HOST= '192.168.25.110'
 PORT= 6794 # Revisar contra el cliente
 ###tcp###
 ##Variables para toma de decision##
@@ -69,9 +78,11 @@ Dt=['Ndty',0]
 Dn=[0,0,0,0]
 dn=[0,0,0,0]
 i=1
+checker=[0]*177 #evita la eleccion de seguir recto cuando no hay nada en los alrededores
 wb = load_workbook(filename = 'PROYECTO DSP DATA DE 4 CASOS (version 1).xlsx', data_only=True)
 sheet_ranges = wb['Casos para algoritmo']
 ##Variables para toma de decision##
+
 ######Movimiento de los motores######
 def detenerse():
     ena.ChangeDutyCycle(0)
@@ -83,26 +94,33 @@ def detenerse():
 
 
 def adelante(mode):
-    ena.ChangeDutyCycle(70)  # duty cycle
-    enb.ChangeDutyCycle(70)
+    
+    ena.ChangeDutyCycle(80)  
+    enb.ChangeDutyCycle(80)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.HIGH)
-    GPIO.output(motorB2, GPIO.HIGH)
-    if mode == 1:
-        time.sleep(0.5) # ajustar hasta implementar encoder
-        detenerse()
+    GPIO.output(motorB2, GPIO.HIGH)	
+    if (mode):
+        ardS.write('12')
+        GPIO.output(Ebng,GPIO.HIGH) #Inicia conteo
+        if(GPIO.input(Eend)== 1): #retraso con polling divino
+            GPIO.output(Ebgn,GPIO.LOW)
+            detenerse()
 
 
 def izquierda(mode):
-    ena.ChangeDutyCycle(80)
+    ena.ChangeDutyCycle(70)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.HIGH)
     GPIO.output(motorB2, GPIO.LOW)
-    if mode == 1:
-        time.sleep(1) # ajustar hasta implementar encoder
-        detenerse()
+    if (mode):
+        ardS.write('6')
+        GPIO.output(Ebng,GPIO.HIGH) #Inicia conteo
+        if(GPIO.input(Eend)== 1): #retraso con polling divino
+            GPIO.output(Ebgn,GPIO.LOW)
+            detenerse()
 
 
 def spinizq(mode):
@@ -112,20 +130,26 @@ def spinizq(mode):
     GPIO.output(motorA2, GPIO.HIGH)
     GPIO.output(motorB1, GPIO.HIGH)
     GPIO.output(motorB2, GPIO.LOW)
-    if mode == 1:
-        time.sleep(0.5) # ajustar hasta implementar encoder
-        detenerse()
+    if (mode):
+        ardS.write('6')
+        GPIO.output(Ebng,GPIO.HIGH) #Inicia conteo
+        if(GPIO.input(Eend)== 1): #retraso con polling divino
+            GPIO.output(Ebgn,GPIO.LOW)
+            detenerse()
 
 
 def derecha(mode):
-    enb.ChangeDutyCycle(100)
+    enb.ChangeDutyCycle(70)
     GPIO.output(motorA1, GPIO.LOW)
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.LOW)
     GPIO.output(motorB2, GPIO.HIGH)
-    if mode == 1:
-        time.sleep(1) # ajustar hasta implementar encoder
-        detenerse()
+    if (mode):
+        ardS.write('6')
+        GPIO.output(Ebng,GPIO.HIGH) #Inicia conteo
+        if(GPIO.input(Eend)== 1): #retraso con polling divino
+            GPIO.output(Ebgn,GPIO.LOW)
+            detenerse()
 
 
 def spinder(mode):
@@ -135,10 +159,13 @@ def spinder(mode):
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.LOW)
     GPIO.output(motorB2, GPIO.HIGH)
-    if mode == 1:
-        time.sleep(0.5) # ajustar hasta implementar encoder
-        detenerse()
-
+    if (mode):
+        ardS.write('6')
+        GPIO.output(Ebng,GPIO.HIGH) #Inicia conteo
+        if(GPIO.input(Eend)== 1): #retraso con polling divino
+            GPIO.output(Ebgn,GPIO.LOW)
+            detenerse()
+		
 def case4(mode):
     enb.ChangeDutyCycle(70)
     ena.ChangeDutyCycle(70)
@@ -146,9 +173,13 @@ def case4(mode):
     GPIO.output(motorA2, GPIO.LOW)
     GPIO.output(motorB1, GPIO.LOW)
     GPIO.output(motorB2, GPIO.HIGH)
-    if mode == 1:
-        time.sleep(1) # ajustar hasta implementar encoder
-        detenerse()
+    if (mode):
+        ardS.write('24')
+        GPIO.output(Ebng,GPIO.HIGH) #Inicia conteo
+        if(GPIO.input(Eend)== 1): #retraso con polling divino
+            continue
+            GPIO.output(Ebgn,GPIO.LOW)
+            detenerse()
 ######Movimiento de los motores######
 ######Funcion Thread######
 def threaded(c): #manual mediante thread
@@ -189,10 +220,10 @@ def threadedMaze(q): #maze control mediante thread
             adelante(1)
         elif data_str == 0:
             print("spinizq(1)")
-            spinder(1)
+            spinizq(1)
         elif data_str == 2:
             print("spinder(1)")
-            spinizq(1)
+            spinder(1)
         elif data_str == 3:
             print("spinder(1) encerrado")
             case4(1) 
@@ -278,6 +309,10 @@ def rpiard(logic):
                         dn[3]=(((rect[0]-y)**2+(rect[1]-z)**2)**0.5)
                         Dn[3]=Dn[3]+dn[3]
                         #|  print("y-z= ",y,z,i,rad[1])
+                        global k
+                        checker[k]=rad[1] #guardar medidas tomadas
+                        k += 1
+                        
                         with open ("MinimoCuadrado.csv", "a") as pos:
                             pos.write("%s, %s, %s, %s, %s, %s, %s, %s, %s \n" % (rad[1],dn[0],Dn[0],dn[1],Dn[1],dn[2],Dn[2],dn[3],Dn[3]))
                     if (i == 165):
@@ -286,17 +321,30 @@ def rpiard(logic):
                         Dn[1]=round(Dn[1],4)
                         Dn[2]=round(Dn[2],4)
                         Dn[3]=round(Dn[3],4)
+                        check=sum(checker)
                         #Distancia Menor para determinar caso
-                        Dt[0]=Dn.index(min(Dn))
-                        q.put(Dt[0])
-                        with open ("Decision.csv", "a") as pos:
-                            pos.write("%s \n" % (Dt[0]))
-                        Dt[0]='Ndty'
-                        Dn[0]=0
-                        Dn[1]=0
-                        Dn[2]=0
-                        Dn[3]=0
-                        i=1
+                        if(check<100):
+                            detenerse()
+                            Dt[0]='Ndty'
+                            Dn[0]=0
+                            Dn[1]=0
+                            Dn[2]=0
+                            Dn[3]=0
+                            i=1
+                            k=0
+                        else:
+                            #hacer eleccion
+                            Dt[0]=Dn.index(min(Dn))
+                            q.put(Dt[0])
+                            with open ("Decision.csv", "a") as pos:
+                                pos.write("%s \n" % (Dt[0]))
+                            Dt[0]='Ndty'
+                            Dn[0]=0
+                            Dn[1]=0
+                            Dn[2]=0
+                            Dn[3]=0
+                            i=1
+                            k=0
                     
                     if(debug):
                         txData()
