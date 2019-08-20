@@ -199,9 +199,9 @@ void radar(){
     //float rectx,recty;
     //rectx = distance*cos(posX);
     //recty = distance*sin(posX);
-    Serial.print("R");
-    Serial.print(",");
     if (scanDirection) {
+      Serial.print("R");
+      Serial.print(",");
       Serial.print("CCW");
       Serial.print(",");
       Serial.print(posX);
