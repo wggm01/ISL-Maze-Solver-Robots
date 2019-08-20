@@ -49,9 +49,9 @@ int cnt=0;
 
 void setup() {
   //Encoder pines
-  pinMode(2,INPUT);//D0 de encoder
-  pinMode(3,INPUT);//Ebng
-  pinMode(4,OUTPUT);//Eend
+  pinMode(13,INPUT);//D0 de encoder
+  pinMode(12,INPUT);//Ebng
+  pinMode(11,OUTPUT);//Eend
   //nivel de referencia
   //Encoder pines
 //   pinMode(LED_BUILTIN, OUTPUT); //Indicador de proceso de calibracion
@@ -173,13 +173,14 @@ int calculateDistance(){
   pitch = 0.97402*gpitch + accpitch*0.02598;
   roll = 0.97402*groll + accroll*0.02598;
   yaw= gyaw;
+  if(scanDirection){
   Serial.print("I");
   Serial.print(",");
   Serial.print(pitch);
   Serial.print(",");
   Serial.print(roll);
   Serial.print(",");
-  Serial.println(yaw);
+  Serial.println(yaw);}
 }
 
 void radar(){
