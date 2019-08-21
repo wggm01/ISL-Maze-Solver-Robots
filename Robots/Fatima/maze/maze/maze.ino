@@ -41,18 +41,15 @@ float tiempo; //crea la variable tiempo (como float)
 //HC-SR04
 
 //Control de Encoder
-boolean encoR,encoF;
-boolean once=1;
-boolean lastState;
-int cnt=0;
+int encoCounter=0; //Contador de estados
+int encoState=0; //Estado actual del encoder
+int lastState=0; //Ultimo estado del encoder
+
 //Control de Encoder
 
 void setup() {
   //Encoder pines
-  pinMode(13,INPUT);//D0 de encoder
-  pinMode(12,INPUT);//Ebng
-  pinMode(11,OUTPUT);//Eend
-  //nivel de referencia
+  pinMode(2,INPUT);//D0 de encoder
   //Encoder pines
 //   pinMode(LED_BUILTIN, OUTPUT); //Indicador de proceso de calibracion
   // initialize serial:
@@ -173,14 +170,13 @@ int calculateDistance(){
   pitch = 0.97402*gpitch + accpitch*0.02598;
   roll = 0.97402*groll + accroll*0.02598;
   yaw= gyaw;
-  if(scanDirection){
   Serial.print("I");
   Serial.print(",");
   Serial.print(pitch);
   Serial.print(",");
   Serial.print(roll);
   Serial.print(",");
-  Serial.println(yaw);}
+  Serial.println(yaw);
 }
 
 void radar(){
@@ -207,7 +203,8 @@ void radar(){
       Serial.print(",");
       Serial.print(posX);
       Serial.print(",");
-      Serial.println(distance);}
+      Serial.println(distance);
+      data_IMU();}
     }}
 //--------Funciones--------------//
 
@@ -242,23 +239,20 @@ if (flagSerial == 0){  //Controlo que este bloque se ejecute con la bandera.
 if(flagRadar == 1){
 radar();
   }
+
 //Control de Encoder
-if(digitalRead(12)==true){ //Ebgn=1 inicio de conteo
-  if(once){once=0;lastState=digitalRead(13);} //Referencia
-  boolean eState=digitalRead(13); //Estado actual del D0 del sensor
-  if(eState != lastState){
-    if(eState==LOW){
-      encoF=1;}//Flanco de bajada detectado
-    else{encoR=1;}}//Flanco de subida detectado
-    lastState=eState;//Actualizacion de estado
-    int limit = (int)cmd[0];//Convertir a entero
-   if(encoR && cnt<limit){ // cada Flanco de subida cuenta mientras este debajo del limite.
-    cnt += 1;
-   }else{cnt = 0;encoR=0;once=1;digitalWrite(11,HIGH);}} //le dice que ya termico de contar
-   else{digitalWrite(11,LOW);}
-//Control de Encoder
-  
-  }
+char ena = cmd[0];
+if(ena=='x'){ //Enviar x para inicar conteo y enviar s para detener
+  encoState=digitalRead(2); //Estado actual del D0 del sensor
+  if(encoState != lastState){
+    if(encoState==HIGH){
+      //OFF TO ON
+      encoCounter++;
+      if(encoCounter>11){encoCounter=0;cmd[0]='0';Serial.println('F');}}
+    }lastState=encoState;
+}
+    
+  } //END LOOP
 
 void serialEvent() {
   while (Serial.available()) {
